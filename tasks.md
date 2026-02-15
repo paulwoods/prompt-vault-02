@@ -8,10 +8,10 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Project Setup
 
-- [ ] PV-1: Create backend Spring Boot project
-- [ ] PV-1: Create frontend React + Tailwind project
-- [ ] PV-2: Define API conventions and error format
-- [ ] PV-3: Configure Docker Compose (Postgres + backend)
+- [x] PV-1: Create backend Spring Boot project
+- [x] PV-1: Create frontend React + Tailwind project
+- [x] PV-2: Define API conventions and error format
+- [x] PV-3: Configure Docker Compose (Postgres + backend)
 
 ---
 
