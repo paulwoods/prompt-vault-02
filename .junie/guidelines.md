@@ -63,7 +63,22 @@
 
 #### Frontend Tests
 
-- Currently, no automated testing framework (like Vitest or Jest) is configured for the frontend.
+- **Framework**: Vitest.
+- **Running Tests**:
+  ```bash
+  cd frontend
+  npm run test
+  ```
+- **Adding New Tests**:
+  Place new tests in `frontend/src/` with the `.test.ts` or `.test.tsx` extension.
+  Example of a simple test:
+  ```typescript
+  import { expect, test } from 'vitest'
+
+  test('simple addition', () => {
+    expect(1 + 1).toBe(2)
+  })
+  ```
 
 ### Additional Development Information
 
