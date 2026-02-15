@@ -19,10 +19,10 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Database & Migrations
 
-- [ ] PV-10: Add Flyway and baseline migration
-- [ ] PV-10: Enable pgcrypto extension
-- [ ] PV-10: Create tables (user, folder, tag, prompt, prompt_version, prompt_tag, share_link, password_reset_token)
-- [ ] PV-10: Create indexes (GIN search, token index, user index)
+- [x] PV-10: Add Flyway and baseline migration
+- [x] PV-10: Enable pgcrypto extension
+- [x] PV-10: Create tables (user, folder, tag, prompt, prompt_version, prompt_tag, share_link, password_reset_token)
+- [x] PV-10: Create indexes (GIN search, token index, user index)
 - [ ] PV-11: Add soft delete support (`deleted_at`)
 - [ ] PV-12: Add optimistic locking column (`row_version`)
 
