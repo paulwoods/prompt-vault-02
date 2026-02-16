@@ -14,4 +14,6 @@ public interface PromptRepository extends ListCrudRepository<Prompt, UUID> {
     List<Prompt> findAllByUserIdAndDeletedAtIsNull(UUID userId);
 
     Optional<Prompt> findByIdAndUserIdAndDeletedAtIsNull(UUID id, UUID userId);
+
+    List<Prompt> findAllByFolderIdAndDeletedAtIsNull(UUID folderId);
 }

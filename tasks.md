@@ -56,9 +56,9 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Folder CRUD
 
-- [ ] PV-40: Folder create/list/rename endpoints
-- [ ] PV-41: Sidebar folder UI
-- [ ] PV-42: Folder delete transactional flow (move/delete/cancel)
+- [x] PV-40: Folder create/list/rename endpoints
+- [x] PV-41: Sidebar folder UI
+- [x] PV-42: Folder delete transactional flow (move/delete/cancel)
 
 ---
 
