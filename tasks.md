@@ -32,11 +32,11 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Auth Core
 
-- [ ] PV-20: Implement user registration endpoint
-- [ ] PV-21: Implement login (JWT + HttpOnly cookie)
-- [ ] PV-22: Implement logout
-- [ ] PV-23: Configure Spring Security filter chain
-- [ ] PV-24: Implement `/api/me` endpoint
+- [x] PV-20: Implement user registration endpoint
+- [x] PV-21: Implement login (JWT + HttpOnly cookie)
+- [x] PV-22: Implement logout
+- [x] PV-23: Configure Spring Security filter chain
+- [x] PV-24: Implement `/api/me` endpoint
 
 ---
 
