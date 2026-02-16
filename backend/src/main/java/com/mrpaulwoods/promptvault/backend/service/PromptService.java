@@ -32,7 +32,7 @@ public class PromptService {
                 .folderId(request.getFolderId())
                 .title(request.getTitle())
                 .currentBody(request.getCurrentBody())
-                .isFavorite(request.isFavorite())
+                .isFavorite(request.getIsFavorite() != null && request.getIsFavorite())
                 .comments(request.getComments())
                 .build();
 
@@ -69,7 +69,7 @@ public class PromptService {
         prompt.setTitle(request.getTitle());
         prompt.setCurrentBody(request.getCurrentBody());
         prompt.setFolderId(request.getFolderId());
-        prompt.setFavorite(request.isFavorite());
+        prompt.setFavorite(request.getIsFavorite() != null && request.getIsFavorite());
         prompt.setComments(request.getComments());
 
         Prompt updatedPrompt = promptRepository.save(prompt);

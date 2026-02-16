@@ -4,6 +4,7 @@ import com.mrpaulwoods.promptvault.backend.dto.PromptRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PromptResponse;
 import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.service.PromptService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +23,7 @@ public class PromptController {
     @PostMapping
     public ResponseEntity<PromptResponse> createPrompt(
             @AuthenticationPrincipal User user,
-            @RequestBody PromptRequest request) {
+            @Valid @RequestBody PromptRequest request) {
         return ResponseEntity.ok(promptService.createPrompt(user.getId(), request));
     }
 
@@ -43,7 +44,7 @@ public class PromptController {
     public ResponseEntity<PromptResponse> updatePrompt(
             @AuthenticationPrincipal User user,
             @PathVariable UUID id,
-            @RequestBody PromptRequest request,
+            @Valid @RequestBody PromptRequest request,
             @RequestParam Integer rowVersion) {
         return ResponseEntity.ok(promptService.updatePrompt(id, user.getId(), request, rowVersion));
     }
