@@ -23,8 +23,8 @@ After each task is done, update the task status to "done" and stop for a manual 
 - [x] PV-10: Enable pgcrypto extension
 - [x] PV-10: Create tables (user, folder, tag, prompt, prompt_version, prompt_tag, share_link, password_reset_token)
 - [x] PV-10: Create indexes (GIN search, token index, user index)
-- [ ] PV-11: Add soft delete support (`deleted_at`)
-- [ ] PV-12: Add optimistic locking column (`row_version`)
+- [x] PV-11: Add soft delete support (`deleted_at`)
+- [x] PV-12: Add optimistic locking column (`row_version`)
 
 ---
 
