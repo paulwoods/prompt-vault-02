@@ -1,6 +1,7 @@
 package com.mrpaulwoods.promptvault.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,9 +20,14 @@ public class PromptRequest {
     private String title;
 
     @NotBlank
+    @Size(max = 10000)
     private String currentBody;
 
     private UUID folderId;
+
+    @NotNull
     private Boolean isFavorite;
+
+    @Size(max = 2000)
     private String comments;
 }
