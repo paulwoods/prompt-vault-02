@@ -44,11 +44,11 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Prompt CRUD
 
-- [ ] PV-60: Create prompt endpoint (initial version entry)
-- [ ] PV-61: Read prompt + list prompts
-- [ ] PV-62: Update prompt with optimistic locking
-- [ ] PV-62: Enforce version cap (50 versions)
-- [ ] PV-63: Soft delete prompt
+- [x] PV-60: Create prompt endpoint (initial version entry)
+- [x] PV-61: Read prompt + list prompts
+- [x] PV-62: Update prompt with optimistic locking
+- [x] PV-62: Enforce version cap (50 versions)
+- [x] PV-63: Soft delete prompt
 
 ---
 
