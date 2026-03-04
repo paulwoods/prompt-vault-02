@@ -6,6 +6,7 @@ import com.mrpaulwoods.promptvault.backend.entity.Prompt;
 import com.mrpaulwoods.promptvault.backend.entity.PromptVersion;
 import com.mrpaulwoods.promptvault.backend.repository.PromptRepository;
 import com.mrpaulwoods.promptvault.backend.repository.PromptVersionRepository;
+import com.mrpaulwoods.promptvault.backend.repository.TagRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +33,9 @@ class PromptServiceTest {
 
     @Mock
     private PromptVersionRepository promptVersionRepository;
+
+    @Mock
+    private TagRepository tagRepository;
 
     @InjectMocks
     private PromptService promptService;
@@ -58,6 +63,7 @@ class PromptServiceTest {
                 .build();
 
         when(promptRepository.save(any(Prompt.class))).thenReturn(savedPrompt);
+        when(tagRepository.findTagsByPromptId(savedPrompt.getId())).thenReturn(List.of());
 
         PromptResponse response = promptService.createPrompt(userId, request);
 
@@ -82,6 +88,7 @@ class PromptServiceTest {
         when(promptRepository.save(any(Prompt.class))).thenReturn(existingPrompt);
         when(promptVersionRepository.findFirstByPromptIdOrderByVersionNumberDesc(promptId))
                 .thenReturn(PromptVersion.builder().versionNumber(1).build());
+        when(tagRepository.findTagsByPromptId(promptId)).thenReturn(List.of());
 
         PromptRequest updateRequest = PromptRequest.builder()
                 .title("New Title")
@@ -126,6 +133,7 @@ class PromptServiceTest {
                 .thenReturn(Optional.of(existingPrompt));
         when(promptRepository.save(any(Prompt.class))).thenReturn(existingPrompt);
         when(promptVersionRepository.countByPromptId(promptId)).thenReturn(51L).thenReturn(50L);
+        when(tagRepository.findTagsByPromptId(promptId)).thenReturn(List.of());
 
         promptService.updatePrompt(promptId, userId, request, 1);
 
