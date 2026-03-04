@@ -66,10 +66,10 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Tag CRUD
 
-- [ ] PV-50: Tag endpoints
-- [ ] PV-51: Tag delete removes prompt_tag relations
-- [ ] PV-52: Sidebar tag UI
-- [ ] PV-64: Assign tags to prompt
+- [x] PV-50: Tag endpoints
+- [x] PV-51: Tag delete removes prompt_tag relations
+- [x] PV-52: Sidebar tag UI
+- [x] PV-64: Assign tags to prompt
 
 ---
 

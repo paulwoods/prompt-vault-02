@@ -1,41 +1,73 @@
 import React, {useState} from 'react';
 import {useFolders} from '../hooks/useFolders';
+import {useTags} from '../hooks/useTags';
 import {Folder} from '../types';
 import {DeleteFolderModal} from './DeleteFolderModal';
 
 interface SidebarProps {
     onFolderSelect: (folderId: string | null) => void;
     selectedFolderId: string | null;
+    onTagSelect: (tagId: string | null) => void;
+    selectedTagId: string | null;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({onFolderSelect, selectedFolderId}) => {
-    const {folders, loading, createFolder, renameFolder, deleteFolder} = useFolders();
-    const [isCreating, setIsCreating] = useState(false);
+export const Sidebar: React.FC<SidebarProps> = ({onFolderSelect, selectedFolderId, onTagSelect, selectedTagId}) => {
+    const {folders, loading: foldersLoading, createFolder, renameFolder, deleteFolder} = useFolders();
+    const {tags, loading: tagsLoading, createTag, updateTag, deleteTag} = useTags();
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
     const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-    const [editName, setEditName] = useState('');
+    const [editFolderName, setEditFolderName] = useState('');
     const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
 
-    const handleCreate = async (e: React.FormEvent) => {
+    const [isCreatingTag, setIsCreatingTag] = useState(false);
+    const [newTagName, setNewTagName] = useState('');
+    const [editingTagId, setEditingTagId] = useState<string | null>(null);
+    const [editTagName, setEditTagName] = useState('');
+
+    const handleCreateFolder = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newFolderName.trim()) {
             await createFolder({name: newFolderName});
             setNewFolderName('');
-            setIsCreating(false);
+            setIsCreatingFolder(false);
         }
     };
 
-    const handleRename = async (id: string) => {
-        if (editName.trim()) {
-            await renameFolder(id, {name: editName});
+    const handleRenameFolder = async (id: string) => {
+        if (editFolderName.trim()) {
+            await renameFolder(id, {name: editFolderName});
             setEditingFolderId(null);
         }
     };
 
-    const handleDelete = async (id: string, mode: any, targetFolderId?: string) => {
+    const handleCreateTag = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newTagName.trim()) {
+            await createTag({name: newTagName});
+            setNewTagName('');
+            setIsCreatingTag(false);
+        }
+    };
+
+    const handleUpdateTag = async (id: string) => {
+        if (editTagName.trim()) {
+            await updateTag(id, {name: editTagName});
+            setEditingTagId(null);
+        }
+    };
+
+    const handleDeleteFolder = async (id: string, mode: any, targetFolderId?: string) => {
         await deleteFolder(id, mode, targetFolderId);
         if (selectedFolderId === id) onFolderSelect(null);
         setFolderToDelete(null);
+    };
+
+    const handleDeleteTag = async (id: string) => {
+        if (window.confirm('Are you sure you want to delete this tag?')) {
+            await deleteTag(id);
+            if (selectedTagId === id) onTagSelect(null);
+        }
     };
 
     return (
@@ -59,15 +91,18 @@ export const Sidebar: React.FC<SidebarProps> = ({onFolderSelect, selectedFolderI
                                 <input
                                     autoFocus
                                     className="px-2 py-1 w-full border rounded"
-                                    value={editName}
-                                    onChange={e => setEditName(e.target.value)}
-                                    onBlur={() => handleRename(folder.id)}
-                                    onKeyDown={e => e.key === 'Enter' && handleRename(folder.id)}
+                                    value={editFolderName}
+                                    onChange={e => setEditFolderName(e.target.value)}
+                                    onBlur={() => handleRenameFolder(folder.id)}
+                                    onKeyDown={e => e.key === 'Enter' && handleRenameFolder(folder.id)}
                                 />
                             ) : (
                                 <>
                                     <button
-                                        onClick={() => onFolderSelect(folder.id)}
+                                        onClick={() => {
+                                            onFolderSelect(folder.id);
+                                            onTagSelect(null);
+                                        }}
                                         className={`flex-grow text-left px-2 py-1 rounded ${selectedFolderId === folder.id ? 'bg-blue-200' : 'hover:bg-gray-200'}`}
                                     >
                                         {folder.name}
@@ -76,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({onFolderSelect, selectedFolderI
                                         <button
                                             onClick={() => {
                                                 setEditingFolderId(folder.id);
-                                                setEditName(folder.name);
+                                                setEditFolderName(folder.name);
                                             }}
                                             className="text-xs text-blue-600"
                                         >
@@ -95,23 +130,92 @@ export const Sidebar: React.FC<SidebarProps> = ({onFolderSelect, selectedFolderI
                     ))}
                 </ul>
 
-                {isCreating ? (
-                    <form onSubmit={handleCreate} className="mt-2">
+                {isCreatingFolder ? (
+                    <form onSubmit={handleCreateFolder} className="mt-2">
                         <input
                             autoFocus
                             className="w-full px-2 py-1 border rounded"
                             placeholder="Folder name..."
                             value={newFolderName}
                             onChange={e => setNewFolderName(e.target.value)}
-                            onBlur={() => setIsCreating(false)}
+                            onBlur={() => setIsCreatingFolder(false)}
                         />
                     </form>
                 ) : (
                     <button
-                        onClick={() => setIsCreating(true)}
+                        onClick={() => setIsCreatingFolder(true)}
                         className="mt-2 text-sm text-blue-600 hover:text-blue-800"
                     >
                         + New Folder
+                    </button>
+                )}
+            </div>
+
+            <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Tags</h3>
+                <ul className="space-y-1">
+                    {tags.map(tag => (
+                        <li key={tag.id} className="group flex items-center justify-between">
+                            {editingTagId === tag.id ? (
+                                <input
+                                    autoFocus
+                                    className="px-2 py-1 w-full border rounded"
+                                    value={editTagName}
+                                    onChange={e => setEditTagName(e.target.value)}
+                                    onBlur={() => handleUpdateTag(tag.id)}
+                                    onKeyDown={e => e.key === 'Enter' && handleUpdateTag(tag.id)}
+                                />
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            onTagSelect(tag.id);
+                                            onFolderSelect(null);
+                                        }}
+                                        className={`flex-grow text-left px-2 py-1 rounded ${selectedTagId === tag.id ? 'bg-blue-200' : 'hover:bg-gray-200'}`}
+                                    >
+                                        #{tag.name}
+                                    </button>
+                                    <div className="hidden group-hover:flex space-x-1">
+                                        <button
+                                            onClick={() => {
+                                                setEditingTagId(tag.id);
+                                                setEditTagName(tag.name);
+                                            }}
+                                            className="text-xs text-blue-600"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteTag(tag.id)}
+                                            className="text-xs text-red-600"
+                                        >
+                                            Del
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+
+                {isCreatingTag ? (
+                    <form onSubmit={handleCreateTag} className="mt-2">
+                        <input
+                            autoFocus
+                            className="w-full px-2 py-1 border rounded"
+                            placeholder="Tag name..."
+                            value={newTagName}
+                            onChange={e => setNewTagName(e.target.value)}
+                            onBlur={() => setIsCreatingTag(false)}
+                        />
+                    </form>
+                ) : (
+                    <button
+                        onClick={() => setIsCreatingTag(true)}
+                        className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                    >
+                        + New Tag
                     </button>
                 )}
             </div>
@@ -121,7 +225,7 @@ export const Sidebar: React.FC<SidebarProps> = ({onFolderSelect, selectedFolderI
                     folder={folderToDelete}
                     otherFolders={folders.filter(f => f.id !== folderToDelete.id)}
                     onClose={() => setFolderToDelete(null)}
-                    onConfirm={(mode, targetId) => handleDelete(folderToDelete.id, mode, targetId)}
+                    onConfirm={(mode, targetId) => handleDeleteFolder(folderToDelete.id, mode, targetId)}
                 />
             )}
         </div>

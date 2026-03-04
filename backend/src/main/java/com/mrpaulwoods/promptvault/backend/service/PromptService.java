@@ -4,8 +4,10 @@ import com.mrpaulwoods.promptvault.backend.dto.PromptRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PromptResponse;
 import com.mrpaulwoods.promptvault.backend.entity.Prompt;
 import com.mrpaulwoods.promptvault.backend.entity.PromptVersion;
+import com.mrpaulwoods.promptvault.backend.entity.Tag;
 import com.mrpaulwoods.promptvault.backend.repository.PromptRepository;
 import com.mrpaulwoods.promptvault.backend.repository.PromptVersionRepository;
+import com.mrpaulwoods.promptvault.backend.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class PromptService {
     private static final int MAX_VERSIONS = 50;
     private final PromptRepository promptRepository;
     private final PromptVersionRepository promptVersionRepository;
+    private final TagRepository tagRepository;
 
     @Transactional
     public PromptResponse createPrompt(UUID userId, PromptRequest request) {
@@ -37,6 +40,12 @@ public class PromptService {
                 .build();
 
         Prompt savedPrompt = promptRepository.save(prompt);
+
+        if (request.getTagIds() != null) {
+            for (UUID tagId : request.getTagIds()) {
+                tagRepository.assignTagToPrompt(savedPrompt.getId(), tagId);
+            }
+        }
 
         createVersion(savedPrompt.getId(), savedPrompt.getCurrentBody(), 1);
 
@@ -73,6 +82,13 @@ public class PromptService {
         prompt.setComments(request.getComments());
 
         Prompt updatedPrompt = promptRepository.save(prompt);
+
+        tagRepository.removeAllTagsFromPrompt(id);
+        if (request.getTagIds() != null) {
+            for (UUID tagId : request.getTagIds()) {
+                tagRepository.assignTagToPrompt(id, tagId);
+            }
+        }
 
         if (bodyChanged) {
             PromptVersion lastVersion = promptVersionRepository.findFirstByPromptIdOrderByVersionNumberDesc(id);
@@ -111,6 +127,10 @@ public class PromptService {
     }
 
     private PromptResponse mapToResponse(Prompt prompt) {
+        List<UUID> tagIds = tagRepository.findTagsByPromptId(prompt.getId()).stream()
+                .map(Tag::getId)
+                .collect(Collectors.toList());
+
         return PromptResponse.builder()
                 .id(prompt.getId())
                 .userId(prompt.getUserId())
@@ -124,6 +144,7 @@ public class PromptService {
                 .rowVersion(prompt.getRowVersion())
                 .createdAt(prompt.getCreatedAt())
                 .updatedAt(prompt.getUpdatedAt())
+                .tagIds(tagIds)
                 .build();
     }
 }
