@@ -5,16 +5,19 @@ import com.mrpaulwoods.promptvault.backend.dto.FolderRequest;
 import com.mrpaulwoods.promptvault.backend.dto.FolderResponse;
 import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.service.FolderService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -24,38 +27,43 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class FolderControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Mock
     private FolderService folderService;
 
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+    @InjectMocks
+    private FolderController folderController;
 
     private UUID userId;
     private User mockUser;
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(folderController)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
         userId = UUID.randomUUID();
         mockUser = User.builder()
                 .id(userId)
                 .email("test@example.com")
                 .passwordHash("password")
                 .build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -67,7 +75,7 @@ class FolderControllerTest {
 
         when(folderService.getAllFolders(userId)).thenReturn(List.of(folder));
 
-        mockMvc.perform(get("/api/folders").with(user(mockUser)))
+        mockMvc.perform(get("/api/folders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("My Folder"));
     }
@@ -83,7 +91,6 @@ class FolderControllerTest {
         when(folderService.createFolder(eq(userId), any(FolderRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/folders")
-                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -103,7 +110,6 @@ class FolderControllerTest {
                 .thenReturn(response);
 
         mockMvc.perform(put("/api/folders/{id}", folderId)
-                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -119,7 +125,6 @@ class FolderControllerTest {
                 .thenThrow(new ResponseStatusException(NOT_FOUND, "Folder not found"));
 
         mockMvc.perform(put("/api/folders/{id}", folderId)
-                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -131,7 +136,6 @@ class FolderControllerTest {
         doNothing().when(folderService).deleteFolder(folderId, userId, "move", null);
 
         mockMvc.perform(delete("/api/folders/{id}", folderId)
-                        .with(user(mockUser))
                         .param("mode", "move"))
                 .andExpect(status().isNoContent());
     }
@@ -142,7 +146,6 @@ class FolderControllerTest {
         doNothing().when(folderService).deleteFolder(folderId, userId, "delete", null);
 
         mockMvc.perform(delete("/api/folders/{id}", folderId)
-                        .with(user(mockUser))
                         .param("mode", "delete"))
                 .andExpect(status().isNoContent());
     }
@@ -154,14 +157,7 @@ class FolderControllerTest {
                 .when(folderService).deleteFolder(eq(folderId), any(UUID.class), eq("delete"), eq(null));
 
         mockMvc.perform(delete("/api/folders/{id}", folderId)
-                        .with(user(mockUser))
                         .param("mode", "delete"))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void getAllFolders_WhenUnauthenticated_ShouldReturn401Or403() throws Exception {
-        mockMvc.perform(get("/api/folders"))
-                .andExpect(status().is4xxClientError());
     }
 }

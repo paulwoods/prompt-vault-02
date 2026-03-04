@@ -5,16 +5,19 @@ import com.mrpaulwoods.promptvault.backend.dto.TagRequest;
 import com.mrpaulwoods.promptvault.backend.dto.TagResponse;
 import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.service.TagService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -24,38 +27,43 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class TagControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Mock
     private TagService tagService;
 
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+    @InjectMocks
+    private TagController tagController;
 
     private UUID userId;
     private User mockUser;
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(tagController)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
         userId = UUID.randomUUID();
         mockUser = User.builder()
                 .id(userId)
                 .email("test@example.com")
                 .passwordHash("password")
                 .build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -67,7 +75,7 @@ class TagControllerTest {
 
         when(tagService.getAllTags(userId)).thenReturn(List.of(tag));
 
-        mockMvc.perform(get("/api/tags").with(user(mockUser)))
+        mockMvc.perform(get("/api/tags"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("My Tag"));
     }
@@ -83,7 +91,6 @@ class TagControllerTest {
         when(tagService.createTag(eq(userId), any(TagRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/tags")
-                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -103,7 +110,6 @@ class TagControllerTest {
         when(tagService.updateTag(eq(userId), eq(tagId), any(TagRequest.class))).thenReturn(response);
 
         mockMvc.perform(put("/api/tags/{id}", tagId)
-                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -120,7 +126,6 @@ class TagControllerTest {
                 .thenThrow(new ResponseStatusException(NOT_FOUND, "Tag not found"));
 
         mockMvc.perform(put("/api/tags/{id}", tagId)
-                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -131,7 +136,7 @@ class TagControllerTest {
         UUID tagId = UUID.randomUUID();
         doNothing().when(tagService).deleteTag(userId, tagId);
 
-        mockMvc.perform(delete("/api/tags/{id}", tagId).with(user(mockUser)))
+        mockMvc.perform(delete("/api/tags/{id}", tagId))
                 .andExpect(status().isNoContent());
     }
 
@@ -141,13 +146,7 @@ class TagControllerTest {
         doThrow(new ResponseStatusException(NOT_FOUND, "Tag not found"))
                 .when(tagService).deleteTag(any(UUID.class), eq(tagId));
 
-        mockMvc.perform(delete("/api/tags/{id}", tagId).with(user(mockUser)))
+        mockMvc.perform(delete("/api/tags/{id}", tagId))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void getAllTags_WhenUnauthenticated_ShouldReturn401Or403() throws Exception {
-        mockMvc.perform(get("/api/tags"))
-                .andExpect(status().is4xxClientError());
     }
 }

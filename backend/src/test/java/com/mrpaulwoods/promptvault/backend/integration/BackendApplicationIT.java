@@ -1,10 +1,10 @@
-package com.mrpaulwoods.promptvault.backend;
+package com.mrpaulwoods.promptvault.backend.integration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BackendApplicationTests {
+class BackendApplicationIT {
 
     @Test
     void contextLoads() {

@@ -1,37 +1,66 @@
 package com.mrpaulwoods.promptvault.backend.validation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mrpaulwoods.promptvault.backend.controller.AuthController;
+import com.mrpaulwoods.promptvault.backend.controller.PromptController;
 import com.mrpaulwoods.promptvault.backend.dto.LoginRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PromptRequest;
 import com.mrpaulwoods.promptvault.backend.dto.RegisterRequest;
+import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.service.AuthService;
 import com.mrpaulwoods.promptvault.backend.service.PromptService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class ValidationTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @Autowired
-    private MockMvc mockMvc;
-    @MockitoBean
+    private MockMvc authMockMvc;
+    private MockMvc promptMockMvc;
+
+    @Mock
     private AuthService authService;
 
-    @MockitoBean
+    @Mock
     private PromptService promptService;
+
+    @BeforeEach
+    void setUp() {
+        authMockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService))
+                .build();
+        promptMockMvc = MockMvcBuilders.standaloneSetup(new PromptController(promptService))
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
+
+        User mockUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("test@example.com")
+                .passwordHash("password")
+                .build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void register_withInvalidEmail_shouldReturnBadRequest() throws Exception {
@@ -39,7 +68,7 @@ class ValidationTest {
         request.setEmail("invalid-email");
         request.setPassword("password123");
 
-        mockMvc.perform(post("/api/auth/register")
+        authMockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -51,7 +80,7 @@ class ValidationTest {
         request.setEmail("test@example.com");
         request.setPassword("short");
 
-        mockMvc.perform(post("/api/auth/register")
+        authMockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -63,14 +92,13 @@ class ValidationTest {
         request.setEmail("");
         request.setPassword("password");
 
-        mockMvc.perform(post("/api/auth/login")
+        authMockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser
     void createPrompt_withBlankTitle_shouldReturnBadRequest() throws Exception {
         PromptRequest request = PromptRequest.builder()
                 .title("")
@@ -78,14 +106,13 @@ class ValidationTest {
                 .isFavorite(true)
                 .build();
 
-        mockMvc.perform(post("/api/prompts")
+        promptMockMvc.perform(post("/api/prompts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser
     void createPrompt_withNullIsFavorite_shouldReturnBadRequest() throws Exception {
         PromptRequest request = PromptRequest.builder()
                 .title("Title")
@@ -93,14 +120,13 @@ class ValidationTest {
                 .isFavorite(null)
                 .build();
 
-        mockMvc.perform(post("/api/prompts")
+        promptMockMvc.perform(post("/api/prompts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser
     void createPrompt_withTooLongBody_shouldReturnBadRequest() throws Exception {
         PromptRequest request = PromptRequest.builder()
                 .title("Title")
@@ -108,7 +134,7 @@ class ValidationTest {
                 .isFavorite(true)
                 .build();
 
-        mockMvc.perform(post("/api/prompts")
+        promptMockMvc.perform(post("/api/prompts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

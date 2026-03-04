@@ -7,14 +7,15 @@ import com.mrpaulwoods.promptvault.backend.dto.RegisterRequest;
 import com.mrpaulwoods.promptvault.backend.dto.UserResponse;
 import com.mrpaulwoods.promptvault.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
 
@@ -25,20 +26,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@org.springframework.test.context.ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private MockMvc mockMvc;
-    @Autowired
-    private WebApplicationContext context;
-    @MockitoBean
+
+    @Mock
     private AuthService authService;
 
-    @org.junit.jupiter.api.BeforeEach
+    @InjectMocks
+    private AuthController authController;
+
+    @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
     }
 
     @Test

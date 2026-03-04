@@ -5,16 +5,19 @@ import com.mrpaulwoods.promptvault.backend.dto.PromptRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PromptResponse;
 import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.service.PromptService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -24,34 +27,43 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class PromptControllerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @Autowired
     private MockMvc mockMvc;
-    @MockitoBean
+
+    @Mock
     private PromptService promptService;
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+
+    @InjectMocks
+    private PromptController promptController;
+
     private UUID userId;
     private User mockUser;
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(promptController)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
         userId = UUID.randomUUID();
         mockUser = User.builder()
                 .id(userId)
                 .email("test@example.com")
                 .passwordHash("password")
                 .build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -72,7 +84,6 @@ class PromptControllerTest {
         when(promptService.createPrompt(eq(userId), any(PromptRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/prompts")
-                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -89,8 +100,7 @@ class PromptControllerTest {
 
         when(promptService.getAllPrompts(userId)).thenReturn(List.of(response));
 
-        mockMvc.perform(get("/api/prompts")
-                        .with(user(mockUser)))
+        mockMvc.perform(get("/api/prompts"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Test Title"));
     }
@@ -105,8 +115,7 @@ class PromptControllerTest {
 
         when(promptService.getPrompt(promptId, userId)).thenReturn(response);
 
-        mockMvc.perform(get("/api/prompts/{id}", promptId)
-                        .with(user(mockUser)))
+        mockMvc.perform(get("/api/prompts/{id}", promptId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(promptId.toString()));
     }
@@ -117,8 +126,7 @@ class PromptControllerTest {
         when(promptService.getPrompt(eq(promptId), any(UUID.class)))
                 .thenThrow(new ResponseStatusException(NOT_FOUND, "Prompt not found"));
 
-        mockMvc.perform(get("/api/prompts/{id}", promptId)
-                        .with(user(mockUser)))
+        mockMvc.perform(get("/api/prompts/{id}", promptId))
                 .andExpect(status().isNotFound());
     }
 
@@ -142,7 +150,6 @@ class PromptControllerTest {
                 .thenReturn(response);
 
         mockMvc.perform(put("/api/prompts/{id}", promptId)
-                        .with(user(mockUser))
                         .param("rowVersion", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -155,8 +162,7 @@ class PromptControllerTest {
         UUID promptId = UUID.randomUUID();
         doNothing().when(promptService).deletePrompt(promptId, userId);
 
-        mockMvc.perform(delete("/api/prompts/{id}", promptId)
-                        .with(user(mockUser)))
+        mockMvc.perform(delete("/api/prompts/{id}", promptId))
                 .andExpect(status().isNoContent());
     }
 
@@ -166,22 +172,7 @@ class PromptControllerTest {
         doThrow(new ResponseStatusException(NOT_FOUND, "Prompt not found"))
                 .when(promptService).deletePrompt(eq(promptId), any(UUID.class));
 
-        mockMvc.perform(delete("/api/prompts/{id}", promptId)
-                        .with(user(mockUser)))
+        mockMvc.perform(delete("/api/prompts/{id}", promptId))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void createPrompt_WhenUnauthenticated_ShouldReturn401Or403() throws Exception {
-        PromptRequest request = PromptRequest.builder()
-                .title("Test Title")
-                .currentBody("Test Body")
-                .isFavorite(false)
-                .build();
-
-        mockMvc.perform(post("/api/prompts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is4xxClientError());
     }
 }

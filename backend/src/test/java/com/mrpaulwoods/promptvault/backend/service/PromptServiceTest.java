@@ -32,9 +32,6 @@ class PromptServiceTest {
     @Mock
     private PromptVersionRepository promptVersionRepository;
 
-    @Mock
-    private com.mrpaulwoods.promptvault.backend.repository.TagRepository tagRepository;
-
     @InjectMocks
     private PromptService promptService;
 
