@@ -23,5 +23,6 @@ For spring boot entities that use lombok, add @Builder, @Data, @NoArgsConstructo
 * Annotate with @SpringBootTest.
 * Do not annotate with @ExtendWith(MockitoExtension.class).
 * Do not use any mocks.
+* Run all integration tests to validate code changes.
 
 
