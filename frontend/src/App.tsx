@@ -3,6 +3,7 @@ import {Sidebar} from './components/Sidebar';
 import {PromptList} from './components/PromptList';
 import {HomePage} from './components/HomePage';
 import {AuthPage} from './components/AuthPage';
+import {PublicSharePage} from './components/PublicSharePage';
 import {useAuth} from './hooks/useAuth';
 
 type View = 'home' | 'auth' | 'app';
@@ -10,6 +11,12 @@ type View = 'home' | 'auth' | 'app';
 function App() {
     const {user, loading, login, register, logout} = useAuth();
     const [view, setView] = useState<View>('home');
+
+    // Check if this is a public share URL: /share/:token
+    const shareMatch = window.location.pathname.match(/^\/share\/([^/]+)$/);
+    if (shareMatch) {
+        return <PublicSharePage token={shareMatch[1]}/>;
+    }
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
 

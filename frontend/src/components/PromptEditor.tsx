@@ -7,6 +7,7 @@ import type {Prompt, PromptRequest} from '../types';
 import {promptApi} from '../api/promptApi';
 import {UnsavedChangesModal} from './UnsavedChangesModal';
 import {VersionHistory} from './VersionHistory';
+import {SharePanel} from './SharePanel';
 
 interface PromptEditorProps {
     prompt: Prompt;
@@ -15,7 +16,7 @@ interface PromptEditorProps {
 }
 
 export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onClose}) => {
-    const [mode, setMode] = useState<'edit' | 'view' | 'history'>('edit');
+    const [mode, setMode] = useState<'edit' | 'view' | 'history' | 'share'>('edit');
     const [title, setTitle] = useState(prompt.title);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
@@ -122,14 +123,14 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 <div className="flex items-center gap-2">
                     {/* Edit / Preview / History toggle */}
                     <div className="flex border border-gray-200 rounded-md p-0.5 text-sm">
-                        {(['edit', 'view', 'history'] as const).map(m => (
+                        {(['edit', 'view', 'history', 'share'] as const).map(m => (
                             <button
                                 key={m}
                                 onClick={() => setMode(m)}
                                 className={`px-3 py-1 rounded text-sm font-medium transition-colors border-none cursor-pointer capitalize
                                     ${mode === m ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
                             >
-                                {m === 'view' ? 'Preview' : m === 'history' ? 'History' : 'Edit'}
+                                {m === 'view' ? 'Preview' : m === 'history' ? 'History' : m === 'share' ? 'Share' : 'Edit'}
                             </button>
                         ))}
                     </div>
@@ -148,8 +149,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 </div>
             </div>
 
-            {/* Title — hidden in history mode */}
-            {mode !== 'history' && (
+            {/* Title — hidden in history and share modes */}
+            {mode !== 'history' && mode !== 'share' && (
                 <div className="px-6 pt-5 pb-2 shrink-0 border-b border-gray-100">
                     <input
                         type="text"
@@ -187,10 +188,13 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                         }}
                     />
                 )}
+                {mode === 'share' && (
+                    <SharePanel promptId={prompt.id}/>
+                )}
             </div>
 
             {/* Status bar — only in edit/view modes */}
-            {mode !== 'history' && (
+            {mode !== 'history' && mode !== 'share' && (
                 <div className="shrink-0 px-6 py-1.5 border-t border-gray-100 flex items-center justify-between">
                     <span className="text-xs text-gray-400">
                         {isDirty() ? '● Unsaved changes' : 'All changes saved'}

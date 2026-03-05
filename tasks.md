@@ -110,13 +110,13 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Share Links
 
-- [ ] PV-100: Create share link API (instant)
-- [ ] PV-101: List share links API
-- [ ] PV-102: Edit expiration
-- [ ] PV-103: Revoke share link
-- [ ] PV-104: Public share endpoint
-- [ ] PV-105: Public share page UI
-- [ ] PV-106: Export as .txt (private + public)
+- [x] PV-100: Create share link API (instant)
+- [x] PV-101: List share links API
+- [x] PV-102: Edit expiration
+- [x] PV-103: Revoke share link
+- [x] PV-104: Public share endpoint
+- [x] PV-105: Public share page UI
+- [x] PV-106: Export as .txt (private + public)
 
 ---
 

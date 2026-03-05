@@ -60,3 +60,24 @@ export interface PromptRequest {
     tagIds?: string[];
     comments?: string;
 }
+
+export interface ShareLink {
+    id: string;
+    promptId: string;
+    token: string;
+    expiresAt?: string;
+    revokedAt?: string;
+    createdAt: string;
+    active: boolean;
+}
+
+export interface ShareLinkRequest {
+    expiresAt?: string | null;
+}
+
+export interface PublicShare {
+    promptId: string;
+    title: string;
+    body: string;
+    sharedAt: string;
+}
