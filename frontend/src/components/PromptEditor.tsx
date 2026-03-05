@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import type {Prompt, PromptRequest} from '../types';
 import {promptApi} from '../api/promptApi';
 import {UnsavedChangesModal} from './UnsavedChangesModal';
+import {VersionHistory} from './VersionHistory';
 
 interface PromptEditorProps {
     prompt: Prompt;
@@ -14,7 +15,7 @@ interface PromptEditorProps {
 }
 
 export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onClose}) => {
-    const [mode, setMode] = useState<'edit' | 'view'>('edit');
+    const [mode, setMode] = useState<'edit' | 'view' | 'history'>('edit');
     const [title, setTitle] = useState(prompt.title);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
@@ -119,22 +120,18 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 </button>
 
                 <div className="flex items-center gap-2">
-                    {/* Edit / View toggle */}
+                    {/* Edit / Preview / History toggle */}
                     <div className="flex border border-gray-200 rounded-md p-0.5 text-sm">
-                        <button
-                            onClick={() => setMode('edit')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors border-none cursor-pointer
-                                ${mode === 'edit' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={() => setMode('view')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors border-none cursor-pointer
-                                ${mode === 'view' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
-                        >
-                            Preview
-                        </button>
+                        {(['edit', 'view', 'history'] as const).map(m => (
+                            <button
+                                key={m}
+                                onClick={() => setMode(m)}
+                                className={`px-3 py-1 rounded text-sm font-medium transition-colors border-none cursor-pointer capitalize
+                                    ${mode === m ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                {m === 'view' ? 'Preview' : m === 'history' ? 'History' : 'Edit'}
+                            </button>
+                        ))}
                     </div>
 
                     {saveError && (
@@ -151,37 +148,58 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 </div>
             </div>
 
-            {/* Title */}
-            <div className="px-6 pt-5 pb-2 shrink-0 border-b border-gray-100">
-                <input
-                    type="text"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    placeholder="Untitled prompt"
-                    className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-300"
-                />
-            </div>
+            {/* Title — hidden in history mode */}
+            {mode !== 'history' && (
+                <div className="px-6 pt-5 pb-2 shrink-0 border-b border-gray-100">
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                        placeholder="Untitled prompt"
+                        className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-300"
+                    />
+                </div>
+            )}
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto">
-                {mode === 'edit' ? (
-                    <EditorContent editor={editor} className="h-full"/>
-                ) : (
-                    <div className="px-6 py-4 prose prose-sm max-w-none">
+            <div className="flex-1 overflow-hidden">
+                {mode === 'edit' && (
+                    <div className="h-full overflow-y-auto">
+                        <EditorContent editor={editor} className="h-full"/>
+                    </div>
+                )}
+                {mode === 'view' && (
+                    <div className="h-full overflow-y-auto px-6 py-4 prose prose-sm max-w-none">
                         <ReactMarkdown>{currentBody.replace(/<[^>]+>/g, '')}</ReactMarkdown>
                     </div>
                 )}
+                {mode === 'history' && (
+                    <VersionHistory
+                        prompt={prompt}
+                        onRestored={restored => {
+                            onSaved(restored);
+                            setMode('edit');
+                            savedBodyRef.current = restored.currentBody;
+                            savedTitleRef.current = restored.title;
+                            rowVersionRef.current = restored.rowVersion;
+                            editor?.commands.setContent(restored.currentBody);
+                            setTitle(restored.title);
+                        }}
+                    />
+                )}
             </div>
 
-            {/* Status bar */}
-            <div className="shrink-0 px-6 py-1.5 border-t border-gray-100 flex items-center justify-between">
-                <span className="text-xs text-gray-400">
-                    {isDirty() ? '● Unsaved changes' : 'All changes saved'}
-                </span>
-                <span className="text-xs text-gray-400">
-                    {navigator.platform.includes('Mac') ? '⌘S' : 'Ctrl+S'} to save
-                </span>
-            </div>
+            {/* Status bar — only in edit/view modes */}
+            {mode !== 'history' && (
+                <div className="shrink-0 px-6 py-1.5 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-xs text-gray-400">
+                        {isDirty() ? '● Unsaved changes' : 'All changes saved'}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                        {navigator.platform.includes('Mac') ? '⌘S' : 'Ctrl+S'} to save
+                    </span>
+                </div>
+            )}
 
             {showUnsaved && (
                 <UnsavedChangesModal

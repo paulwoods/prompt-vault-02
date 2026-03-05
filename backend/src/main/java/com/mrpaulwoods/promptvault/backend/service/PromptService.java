@@ -2,6 +2,7 @@ package com.mrpaulwoods.promptvault.backend.service;
 
 import com.mrpaulwoods.promptvault.backend.dto.PromptRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PromptResponse;
+import com.mrpaulwoods.promptvault.backend.dto.PromptVersionResponse;
 import com.mrpaulwoods.promptvault.backend.entity.Prompt;
 import com.mrpaulwoods.promptvault.backend.entity.PromptVersion;
 import com.mrpaulwoods.promptvault.backend.entity.Tag;
@@ -118,6 +119,43 @@ public class PromptService {
         }
 
         return mapToResponse(updatedPrompt);
+    }
+
+    public List<PromptVersionResponse> getVersions(UUID promptId, UUID userId) {
+        promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
+        return promptVersionRepository.findAllByPromptIdOrderByVersionNumberAsc(promptId).stream()
+                .map(v -> PromptVersionResponse.builder()
+                        .id(v.getId())
+                        .promptId(v.getPromptId())
+                        .versionNumber(v.getVersionNumber())
+                        .bodySnapshot(v.getBodySnapshot())
+                        .createdAt(v.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public PromptResponse restoreVersion(UUID promptId, UUID versionId, UUID userId) {
+        Prompt prompt = promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
+
+        PromptVersion version = promptVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Version not found"));
+
+        if (!version.getPromptId().equals(promptId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Version does not belong to this prompt");
+        }
+
+        prompt.setCurrentBody(version.getBodySnapshot());
+        Prompt updated = promptRepository.save(prompt);
+
+        PromptVersion last = promptVersionRepository.findFirstByPromptIdOrderByVersionNumberDesc(promptId);
+        int nextVersionNumber = (last != null) ? last.getVersionNumber() + 1 : 1;
+        createVersion(promptId, version.getBodySnapshot(), nextVersionNumber);
+        enforceVersionCap(promptId);
+
+        return mapToResponse(updated);
     }
 
     @Transactional

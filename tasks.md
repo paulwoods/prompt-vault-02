@@ -99,10 +99,10 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Version History
 
-- [ ] PV-90: Version list API
-- [ ] PV-91: Restore version API
-- [ ] PV-92: History tab UI
-- [ ] PV-93: Basic diff highlighting (additions yellow, deletions red)
+- [x] PV-90: Version list API
+- [x] PV-91: Restore version API
+- [x] PV-92: History tab UI
+- [x] PV-93: Basic diff highlighting (additions yellow, deletions red)
 
 ---
 

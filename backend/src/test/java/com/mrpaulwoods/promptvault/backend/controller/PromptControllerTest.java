@@ -219,4 +219,38 @@ class PromptControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Tagged Prompt"));
     }
+
+    @Test
+    void getVersions_ShouldReturnVersionList() throws Exception {
+        UUID promptId = UUID.randomUUID();
+        com.mrpaulwoods.promptvault.backend.dto.PromptVersionResponse v = com.mrpaulwoods.promptvault.backend.dto.PromptVersionResponse.builder()
+                .id(UUID.randomUUID())
+                .promptId(promptId)
+                .versionNumber(1)
+                .bodySnapshot("body v1")
+                .build();
+
+        when(promptService.getVersions(promptId, userId)).thenReturn(List.of(v));
+
+        mockMvc.perform(get("/api/prompts/{id}/versions", promptId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].versionNumber").value(1))
+                .andExpect(jsonPath("$[0].bodySnapshot").value("body v1"));
+    }
+
+    @Test
+    void restoreVersion_ShouldReturnUpdatedPrompt() throws Exception {
+        UUID promptId = UUID.randomUUID();
+        UUID versionId = UUID.randomUUID();
+        PromptResponse response = PromptResponse.builder()
+                .id(promptId)
+                .title("Restored Prompt")
+                .build();
+
+        when(promptService.restoreVersion(promptId, versionId, userId)).thenReturn(response);
+
+        mockMvc.perform(post("/api/prompts/{id}/versions/{versionId}/restore", promptId, versionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Restored Prompt"));
+    }
 }

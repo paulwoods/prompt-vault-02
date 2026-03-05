@@ -216,4 +216,69 @@ class PromptServiceTest {
         assertThat(results).hasSize(1);
         verify(promptRepository).findByTagIdAndFilters(userId, tagId, null, null);
     }
+
+    @Test
+    void getVersions_ShouldReturnVersionsInOrder() {
+        UUID promptId = UUID.randomUUID();
+        Prompt prompt = Prompt.builder().id(promptId).userId(userId).build();
+
+        PromptVersion v1 = PromptVersion.builder().id(UUID.randomUUID()).promptId(promptId).versionNumber(1).bodySnapshot("v1").build();
+        PromptVersion v2 = PromptVersion.builder().id(UUID.randomUUID()).promptId(promptId).versionNumber(2).bodySnapshot("v2").build();
+
+        when(promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)).thenReturn(Optional.of(prompt));
+        when(promptVersionRepository.findAllByPromptIdOrderByVersionNumberAsc(promptId)).thenReturn(List.of(v1, v2));
+
+        List<com.mrpaulwoods.promptvault.backend.dto.PromptVersionResponse> versions = promptService.getVersions(promptId, userId);
+
+        assertThat(versions).hasSize(2);
+        assertThat(versions.get(0).getVersionNumber()).isEqualTo(1);
+        assertThat(versions.get(1).getVersionNumber()).isEqualTo(2);
+    }
+
+    @Test
+    void getVersions_WhenPromptNotFound_ShouldThrow404() {
+        UUID promptId = UUID.randomUUID();
+        when(promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> promptService.getVersions(promptId, userId))
+                .isExactlyInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Prompt not found");
+    }
+
+    @Test
+    void restoreVersion_ShouldSetBodyAndCreateNewVersion() {
+        UUID promptId = UUID.randomUUID();
+        UUID versionId = UUID.randomUUID();
+
+        Prompt prompt = Prompt.builder().id(promptId).userId(userId).currentBody("current").rowVersion(1).build();
+        PromptVersion version = PromptVersion.builder().id(versionId).promptId(promptId).versionNumber(1).bodySnapshot("restored body").build();
+
+        when(promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)).thenReturn(Optional.of(prompt));
+        when(promptVersionRepository.findById(versionId)).thenReturn(Optional.of(version));
+        when(promptRepository.save(any(Prompt.class))).thenReturn(prompt);
+        when(promptVersionRepository.findFirstByPromptIdOrderByVersionNumberDesc(promptId)).thenReturn(version);
+        when(tagRepository.findTagsByPromptId(promptId)).thenReturn(List.of());
+
+        promptService.restoreVersion(promptId, versionId, userId);
+
+        verify(promptRepository).save(any(Prompt.class));
+        verify(promptVersionRepository).save(any(PromptVersion.class));
+    }
+
+    @Test
+    void restoreVersion_WhenVersionBelongsToDifferentPrompt_ShouldThrow403() {
+        UUID promptId = UUID.randomUUID();
+        UUID versionId = UUID.randomUUID();
+        UUID otherPromptId = UUID.randomUUID();
+
+        Prompt prompt = Prompt.builder().id(promptId).userId(userId).build();
+        PromptVersion version = PromptVersion.builder().id(versionId).promptId(otherPromptId).build();
+
+        when(promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)).thenReturn(Optional.of(prompt));
+        when(promptVersionRepository.findById(versionId)).thenReturn(Optional.of(version));
+
+        assertThatThrownBy(() -> promptService.restoreVersion(promptId, versionId, userId))
+                .isExactlyInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("does not belong");
+    }
 }

@@ -2,6 +2,7 @@ package com.mrpaulwoods.promptvault.backend.controller;
 
 import com.mrpaulwoods.promptvault.backend.dto.PromptRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PromptResponse;
+import com.mrpaulwoods.promptvault.backend.dto.PromptVersionResponse;
 import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.service.PromptService;
 import jakarta.validation.Valid;
@@ -63,6 +64,21 @@ public class PromptController {
             @Valid @RequestBody PromptRequest request,
             @RequestParam Integer rowVersion) {
         return ResponseEntity.ok(promptService.updatePrompt(id, user.getId(), request, rowVersion));
+    }
+
+    @GetMapping("/{id}/versions")
+    public ResponseEntity<List<PromptVersionResponse>> getVersions(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(promptService.getVersions(id, user.getId()));
+    }
+
+    @PostMapping("/{id}/versions/{versionId}/restore")
+    public ResponseEntity<PromptResponse> restoreVersion(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID id,
+            @PathVariable UUID versionId) {
+        return ResponseEntity.ok(promptService.restoreVersion(id, versionId, user.getId()));
     }
 
     @DeleteMapping("/{id}")

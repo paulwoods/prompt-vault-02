@@ -44,6 +44,14 @@ export interface PromptFilterParams {
     favorite?: boolean;
 }
 
+export interface PromptVersion {
+    id: string;
+    promptId: string;
+    versionNumber: number;
+    bodySnapshot: string;
+    createdAt: string;
+}
+
 export interface PromptRequest {
     title: string;
     currentBody: string;

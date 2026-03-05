@@ -1,5 +1,5 @@
 import {API_BASE, apiFetch} from './apiFetch';
-import type {Prompt, PromptFilterParams, PromptRequest} from '../types';
+import type {Prompt, PromptFilterParams, PromptRequest, PromptVersion} from '../types';
 
 export const promptApi = {
     async getAll(): Promise<Prompt[]> {
@@ -37,6 +37,20 @@ export const promptApi = {
     async delete(id: string): Promise<void> {
         const response = await apiFetch(`${API_BASE}/prompts/${id}`, {method: 'DELETE'});
         if (!response.ok) throw new Error('Failed to delete prompt');
+    },
+
+    async getVersions(promptId: string): Promise<PromptVersion[]> {
+        const response = await apiFetch(`${API_BASE}/prompts/${promptId}/versions`);
+        if (!response.ok) throw new Error('Failed to fetch versions');
+        return response.json();
+    },
+
+    async restoreVersion(promptId: string, versionId: string): Promise<Prompt> {
+        const response = await apiFetch(`${API_BASE}/prompts/${promptId}/versions/${versionId}/restore`, {
+            method: 'POST',
+        });
+        if (!response.ok) throw new Error('Failed to restore version');
+        return response.json();
     },
 
     async search(q: string): Promise<Prompt[]> {
