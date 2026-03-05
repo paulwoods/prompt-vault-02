@@ -58,7 +58,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
             const request: PromptRequest = {
                 title,
                 currentBody: body,
-                isFavorite: promptRef.current.isFavorite,
+                isFavorite: promptRef.current.isFavorite || false,
                 folderId: promptRef.current.folderId,
                 tagIds: promptRef.current.tagIds,
                 comments: promptRef.current.comments,

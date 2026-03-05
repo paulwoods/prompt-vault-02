@@ -26,7 +26,7 @@ export const PromptList: React.FC<PromptListProps> = ({folderId, tagId}) => {
         try {
             const created = await promptApi.create({
                 title: 'New Prompt',
-                currentBody: '',
+                currentBody: 'todo',
                 isFavorite: false,
                 folderId: folderId ?? undefined,
             });

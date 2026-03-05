@@ -10,7 +10,11 @@ export default defineConfig({
     ],
     server: {
         proxy: {
-            "/promptvault": "http://localhost:8080"
+            "/promptvault": {
+                target: "http://localhost:8080",
+                changeOrigin: true,
+                cookieDomainRewrite: "localhost",
+            }
         }
     },
 })
