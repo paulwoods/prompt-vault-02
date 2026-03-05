@@ -139,4 +139,81 @@ class PromptServiceTest {
 
         verify(promptVersionRepository).deleteFirstByPromptIdOrderByVersionNumberAsc(promptId);
     }
+
+    @Test
+    void searchPrompts_WithQuery_ShouldReturnMatchingPrompts() {
+        Prompt matchingPrompt = Prompt.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .title("Test search title")
+                .currentBody("body")
+                .build();
+
+        when(promptRepository.searchByText(userId, "search")).thenReturn(List.of(matchingPrompt));
+        when(tagRepository.findTagsByPromptId(matchingPrompt.getId())).thenReturn(List.of());
+
+        List<PromptResponse> results = promptService.searchPrompts(userId, "search");
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getTitle()).isEqualTo("Test search title");
+        verify(promptRepository).searchByText(userId, "search");
+    }
+
+    @Test
+    void searchPrompts_WithBlankQuery_ShouldReturnAllPrompts() {
+        Prompt prompt = Prompt.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .title("Any Prompt")
+                .currentBody("body")
+                .build();
+
+        when(promptRepository.findAllByUserIdAndDeletedAtIsNull(userId)).thenReturn(List.of(prompt));
+        when(tagRepository.findTagsByPromptId(prompt.getId())).thenReturn(List.of());
+
+        List<PromptResponse> results = promptService.searchPrompts(userId, "  ");
+
+        assertThat(results).hasSize(1);
+        verify(promptRepository).findAllByUserIdAndDeletedAtIsNull(userId);
+    }
+
+    @Test
+    void filterPrompts_ByFolderAndFavorite_ShouldCallFindByFilters() {
+        UUID folderId = UUID.randomUUID();
+        Prompt prompt = Prompt.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .folderId(folderId)
+                .isFavorite(true)
+                .title("Fav Prompt")
+                .currentBody("body")
+                .build();
+
+        when(promptRepository.findByFilters(userId, folderId, true)).thenReturn(List.of(prompt));
+        when(tagRepository.findTagsByPromptId(prompt.getId())).thenReturn(List.of());
+
+        List<PromptResponse> results = promptService.filterPrompts(userId, folderId, null, true);
+
+        assertThat(results).hasSize(1);
+        verify(promptRepository).findByFilters(userId, folderId, true);
+    }
+
+    @Test
+    void filterPrompts_ByTag_ShouldCallFindByTagIdAndFilters() {
+        UUID tagId = UUID.randomUUID();
+        Prompt prompt = Prompt.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .title("Tagged Prompt")
+                .currentBody("body")
+                .build();
+
+        when(promptRepository.findByTagIdAndFilters(userId, tagId, null, null)).thenReturn(List.of(prompt));
+        when(tagRepository.findTagsByPromptId(prompt.getId())).thenReturn(List.of());
+
+        List<PromptResponse> results = promptService.filterPrompts(userId, null, tagId, null);
+
+        assertThat(results).hasSize(1);
+        verify(promptRepository).findByTagIdAndFilters(userId, tagId, null, null);
+    }
 }

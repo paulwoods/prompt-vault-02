@@ -37,3 +37,9 @@ export interface Prompt {
     updatedAt: string;
     tagIds: string[];
 }
+
+export interface PromptFilterParams {
+    folderId?: string;
+    tagId?: string;
+    favorite?: boolean;
+}

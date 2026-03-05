@@ -27,6 +27,22 @@ public class PromptController {
         return ResponseEntity.ok(promptService.createPrompt(user.getId(), request));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<PromptResponse>> searchPrompts(
+            @AuthenticationPrincipal User user,
+            @RequestParam String q) {
+        return ResponseEntity.ok(promptService.searchPrompts(user.getId(), q));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<PromptResponse>> filterPrompts(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) UUID folderId,
+            @RequestParam(required = false) UUID tagId,
+            @RequestParam(required = false) Boolean favorite) {
+        return ResponseEntity.ok(promptService.filterPrompts(user.getId(), folderId, tagId, favorite));
+    }
+
     @GetMapping
     public ResponseEntity<List<PromptResponse>> getAllPrompts(
             @AuthenticationPrincipal User user) {

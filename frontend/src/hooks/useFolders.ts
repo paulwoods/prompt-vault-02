@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {folderApi} from '../api/folderApi';
-import {DeleteFolderMode, Folder, FolderRequest} from '../types';
+import type {DeleteFolderMode, Folder, FolderRequest} from '../types';
 
 export function useFolders() {
     const [folders, setFolders] = useState<Folder[]>([]);

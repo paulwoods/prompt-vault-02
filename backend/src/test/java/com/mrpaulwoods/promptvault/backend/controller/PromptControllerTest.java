@@ -175,4 +175,48 @@ class PromptControllerTest {
         mockMvc.perform(delete("/api/prompts/{id}", promptId))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void searchPrompts_ShouldReturnMatchingResults() throws Exception {
+        PromptResponse response = PromptResponse.builder()
+                .id(UUID.randomUUID())
+                .title("Matching Prompt")
+                .build();
+
+        when(promptService.searchPrompts(userId, "match")).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/prompts/search").param("q", "match"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Matching Prompt"));
+    }
+
+    @Test
+    void filterPrompts_ByFavorite_ShouldReturnFilteredResults() throws Exception {
+        PromptResponse response = PromptResponse.builder()
+                .id(UUID.randomUUID())
+                .title("Favorite Prompt")
+                .isFavorite(true)
+                .build();
+
+        when(promptService.filterPrompts(eq(userId), any(), any(), eq(true))).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/prompts/filter").param("favorite", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Favorite Prompt"));
+    }
+
+    @Test
+    void filterPrompts_ByTagId_ShouldReturnFilteredResults() throws Exception {
+        UUID tagId = UUID.randomUUID();
+        PromptResponse response = PromptResponse.builder()
+                .id(UUID.randomUUID())
+                .title("Tagged Prompt")
+                .build();
+
+        when(promptService.filterPrompts(eq(userId), any(), eq(tagId), any())).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/prompts/filter").param("tagId", tagId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Tagged Prompt"));
+    }
 }

@@ -58,6 +58,25 @@ public class PromptService {
                 .collect(Collectors.toList());
     }
 
+    public List<PromptResponse> searchPrompts(UUID userId, String query) {
+        if (query == null || query.isBlank()) {
+            return getAllPrompts(userId);
+        }
+        return promptRepository.searchByText(userId, query).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<PromptResponse> filterPrompts(UUID userId, UUID folderId, UUID tagId, Boolean favorite) {
+        List<Prompt> prompts;
+        if (tagId != null) {
+            prompts = promptRepository.findByTagIdAndFilters(userId, tagId, folderId, favorite);
+        } else {
+            prompts = promptRepository.findByFilters(userId, folderId, favorite);
+        }
+        return prompts.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     public PromptResponse getPrompt(UUID id, UUID userId) {
         Prompt prompt = promptRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {useFolders} from '../hooks/useFolders';
 import {useTags} from '../hooks/useTags';
-import {Folder} from '../types';
+import type {Folder} from '../types';
 import {DeleteFolderModal} from './DeleteFolderModal';
 
 interface SidebarProps {
@@ -12,8 +12,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({onFolderSelect, selectedFolderId, onTagSelect, selectedTagId}) => {
-    const {folders, loading: foldersLoading, createFolder, renameFolder, deleteFolder} = useFolders();
-    const {tags, loading: tagsLoading, createTag, updateTag, deleteTag} = useTags();
+    const {folders, createFolder, renameFolder, deleteFolder} = useFolders();
+    const {tags, createTag, updateTag, deleteTag} = useTags();
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
     const [editingFolderId, setEditingFolderId] = useState<string | null>(null);

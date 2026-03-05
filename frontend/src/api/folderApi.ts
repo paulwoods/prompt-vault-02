@@ -1,6 +1,6 @@
-import {DeleteFolderMode, Folder, FolderRequest} from '../types';
+import type {DeleteFolderMode, Folder, FolderRequest} from '../types';
 
-const API_BASE = '/api';
+const API_BASE = '/promptvault/api';
 
 export const folderApi = {
     async getAll(): Promise<Folder[]> {

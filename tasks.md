@@ -77,9 +77,9 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Full-Text Search
 
-- [ ] PV-70: Implement search API with ts_rank
-- [ ] PV-71: Implement filters (folder, tags, favorites)
-- [ ] PV-72: Frontend live search (debounced)
+- [x] PV-70: Implement search API with ts_rank
+- [x] PV-71: Implement filters (folder, tags, favorites)
+- [x] PV-72: Frontend live search (debounced)
 
 ---
 

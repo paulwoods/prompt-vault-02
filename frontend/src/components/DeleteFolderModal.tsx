@@ -1,5 +1,5 @@
 import React from 'react';
-import {DeleteFolderMode, Folder} from '../types';
+import type {DeleteFolderMode, Folder} from '../types';
 
 interface DeleteFolderModalProps {
     folder: Folder;

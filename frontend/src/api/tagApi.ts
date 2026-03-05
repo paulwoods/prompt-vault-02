@@ -1,6 +1,6 @@
-import {Tag, TagRequest} from '../types';
+import type {Tag, TagRequest} from '../types';
 
-const API_BASE = '/api';
+const API_BASE = '/promptvault/api';
 
 export const tagApi = {
     async getAll(): Promise<Tag[]> {

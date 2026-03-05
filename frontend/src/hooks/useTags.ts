@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {tagApi} from '../api/tagApi';
-import {Tag, TagRequest} from '../types';
+import type {Tag, TagRequest} from '../types';
 
 export function useTags() {
     const [tags, setTags] = useState<Tag[]>([]);
