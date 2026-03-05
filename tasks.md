@@ -87,11 +87,11 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Editor
 
-- [ ] PV-80: Prompt editor page structure
-- [ ] PV-81: Integrate TipTap (edit mode)
-- [ ] PV-82: Markdown render (view mode)
-- [ ] PV-83: Manual save + Cmd/Ctrl+S
-- [ ] PV-84: Unsaved changes modal
+- [x] PV-80: Prompt editor page structure
+- [x] PV-81: Integrate TipTap (edit mode)
+- [x] PV-82: Markdown render (view mode)
+- [x] PV-83: Manual save + Cmd/Ctrl+S
+- [x] PV-84: Unsaved changes modal
 
 ---
 

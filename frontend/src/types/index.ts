@@ -43,3 +43,12 @@ export interface PromptFilterParams {
     tagId?: string;
     favorite?: boolean;
 }
+
+export interface PromptRequest {
+    title: string;
+    currentBody: string;
+    isFavorite: boolean;
+    folderId?: string;
+    tagIds?: string[];
+    comments?: string;
+}

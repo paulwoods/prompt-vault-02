@@ -1,4 +1,4 @@
-const API_BASE = '/promptvault/api';
+import {API_BASE, apiFetch} from './apiFetch';
 
 export interface RegisterRequest {
     email: string;
@@ -18,7 +18,7 @@ export interface UserResponse {
 
 export const authApi = {
     async register(data: RegisterRequest): Promise<UserResponse> {
-        const response = await fetch(`${API_BASE}/auth/register`, {
+        const response = await apiFetch(`${API_BASE}/auth/register`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data),
@@ -31,7 +31,7 @@ export const authApi = {
     },
 
     async login(data: LoginRequest): Promise<void> {
-        const response = await fetch(`${API_BASE}/auth/login`, {
+        const response = await apiFetch(`${API_BASE}/auth/login`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data),
@@ -42,11 +42,11 @@ export const authApi = {
     },
 
     async logout(): Promise<void> {
-        await fetch(`${API_BASE}/auth/logout`, {method: 'POST'});
+        await apiFetch(`${API_BASE}/auth/logout`, {method: 'POST'});
     },
 
     async me(): Promise<UserResponse | null> {
-        const response = await fetch(`${API_BASE}/me`);
+        const response = await apiFetch(`${API_BASE}/me`);
         if (!response.ok) return null;
         return response.json();
     },

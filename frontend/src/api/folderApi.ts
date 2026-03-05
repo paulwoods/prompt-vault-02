@@ -1,16 +1,15 @@
+import {API_BASE, apiFetch} from './apiFetch';
 import type {DeleteFolderMode, Folder, FolderRequest} from '../types';
-
-const API_BASE = '/promptvault/api';
 
 export const folderApi = {
     async getAll(): Promise<Folder[]> {
-        const response = await fetch(`${API_BASE}/folders`);
+        const response = await apiFetch(`${API_BASE}/folders`);
         if (!response.ok) throw new Error('Failed to fetch folders');
         return response.json();
     },
 
     async create(folder: FolderRequest): Promise<Folder> {
-        const response = await fetch(`${API_BASE}/folders`, {
+        const response = await apiFetch(`${API_BASE}/folders`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(folder),
@@ -20,7 +19,7 @@ export const folderApi = {
     },
 
     async rename(id: string, folder: FolderRequest): Promise<Folder> {
-        const response = await fetch(`${API_BASE}/folders/${id}`, {
+        const response = await apiFetch(`${API_BASE}/folders/${id}`, {
             method: 'PUT',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(folder),
@@ -33,7 +32,7 @@ export const folderApi = {
         const params = new URLSearchParams({mode});
         if (targetFolderId) params.append('targetFolderId', targetFolderId);
 
-        const response = await fetch(`${API_BASE}/folders/${id}?${params.toString()}`, {
+        const response = await apiFetch(`${API_BASE}/folders/${id}?${params.toString()}`, {
             method: 'DELETE',
         });
         if (!response.ok) throw new Error('Failed to delete folder');
