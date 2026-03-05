@@ -1,3 +1,7 @@
+server:
+  servlet:
+    context-path: /promptvault
+
 spring:
   profiles:
     active: localhost
