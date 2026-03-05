@@ -174,6 +174,20 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 </div>
             </div>
 
+            {/* PV-111: Permanent attribution banner for forked prompts */}
+            {prompt.forkedFromPromptId && (
+                <div className="shrink-0 bg-yellow-50 border-b border-yellow-200 px-6 py-2 flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 text-yellow-600 shrink-0" fill="none" stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span className="text-xs text-yellow-800">
+                        Forked from a prompt by <strong>{prompt.forkedFromAuthor}</strong>
+                    </span>
+                </div>
+            )}
+
             {/* Title + meta — hidden in history and share modes */}
             {mode !== 'history' && mode !== 'share' && (
                 <>

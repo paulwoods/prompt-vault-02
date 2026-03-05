@@ -124,9 +124,9 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Fork Flow
 
-- [ ] PV-110: Fork endpoint (copy content, attribution set)
-- [ ] PV-111: Permanent attribution UI banner
-- [ ] PV-112: Handle expired/original unavailable case
+- [x] PV-110: Fork endpoint (copy content, attribution set)
+- [x] PV-111: Permanent attribution UI banner
+- [x] PV-112: Handle expired/original unavailable case
 
 ---
 
