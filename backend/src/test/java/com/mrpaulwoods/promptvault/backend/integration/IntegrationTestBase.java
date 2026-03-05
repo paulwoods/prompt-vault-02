@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 abstract class IntegrationTestBase {
 
@@ -22,8 +24,9 @@ abstract class IntegrationTestBase {
         register.setPassword(password);
 
         mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(register)));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(register)))
+                .andExpect(status().isOk());
 
         LoginRequest login = new LoginRequest();
         login.setEmail(email);
@@ -32,8 +35,11 @@ abstract class IntegrationTestBase {
         var result = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
+                .andExpect(status().isOk())
                 .andReturn();
 
-        return result.getResponse().getCookie("jwt");
+        Cookie cookie = result.getResponse().getCookie("jwt");
+        assertNotNull(cookie, "JWT cookie must not be null after successful login");
+        return cookie;
     }
 }

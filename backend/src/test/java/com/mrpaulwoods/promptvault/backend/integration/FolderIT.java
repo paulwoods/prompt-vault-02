@@ -24,7 +24,7 @@ class FolderIT extends IntegrationTestBase {
 
     @BeforeEach
     void setUp() throws Exception {
-        jwtCookie = registerAndLogin("folder@example.com", "password123");
+        jwtCookie = registerAndLogin("folder2@example.com", "password123");
     }
 
     @Test
