@@ -8,6 +8,7 @@ import {promptApi} from '../api/promptApi';
 import {UnsavedChangesModal} from './UnsavedChangesModal';
 import {VersionHistory} from './VersionHistory';
 import {SharePanel} from './SharePanel';
+import {PromptMetaBar} from './PromptMetaBar';
 
 interface PromptEditorProps {
     prompt: Prompt;
@@ -69,6 +70,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
             savedBodyRef.current = body;
             savedTitleRef.current = title;
             rowVersionRef.current = updated.rowVersion;
+            promptRef.current = updated;
             onSaved(updated);
         } catch (e: unknown) {
             setSaveError(e instanceof Error ? e.message : 'Save failed');
@@ -76,6 +78,29 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
             setSaving(false);
         }
     }, [editor, title, onSaved]);
+
+    // Save folder/tag changes immediately without touching the body
+    const saveMetaOnly = useCallback(async (folderId: string | undefined, tagIds: string[]) => {
+        if (!editor) return;
+        setSaveError(null);
+        try {
+            const body = editor.getHTML();
+            const request: PromptRequest = {
+                title: promptRef.current.title,
+                currentBody: body,
+                isFavorite: promptRef.current.isFavorite || false,
+                folderId,
+                tagIds,
+                comments: promptRef.current.comments,
+            };
+            const updated = await promptApi.update(promptRef.current.id, request, rowVersionRef.current);
+            rowVersionRef.current = updated.rowVersion;
+            promptRef.current = updated;
+            onSaved(updated);
+        } catch (e: unknown) {
+            setSaveError(e instanceof Error ? e.message : 'Save failed');
+        }
+    }, [editor, onSaved]);
 
     // Cmd/Ctrl+S
     useEffect(() => {
@@ -121,7 +146,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 </button>
 
                 <div className="flex items-center gap-2">
-                    {/* Edit / Preview / History toggle */}
+                    {/* Edit / Preview / History / Share toggle */}
                     <div className="flex border border-gray-200 rounded-md p-0.5 text-sm">
                         {(['edit', 'view', 'history', 'share'] as const).map(m => (
                             <button
@@ -149,17 +174,25 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 </div>
             </div>
 
-            {/* Title — hidden in history and share modes */}
+            {/* Title + meta — hidden in history and share modes */}
             {mode !== 'history' && mode !== 'share' && (
-                <div className="px-6 pt-5 pb-2 shrink-0 border-b border-gray-100">
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                        placeholder="Untitled prompt"
-                        className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-300"
+                <>
+                    <div className="px-6 pt-5 pb-2 shrink-0 border-b border-gray-100">
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={e => setTitle(e.target.value)}
+                            placeholder="Untitled prompt"
+                            className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-300"
+                        />
+                    </div>
+                    <PromptMetaBar
+                        folderId={promptRef.current.folderId}
+                        tagIds={promptRef.current.tagIds}
+                        onFolderChange={folderId => saveMetaOnly(folderId, promptRef.current.tagIds)}
+                        onTagsChange={tagIds => saveMetaOnly(promptRef.current.folderId, tagIds)}
                     />
-                </div>
+                </>
             )}
 
             {/* Body */}
@@ -183,6 +216,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                             savedBodyRef.current = restored.currentBody;
                             savedTitleRef.current = restored.title;
                             rowVersionRef.current = restored.rowVersion;
+                            promptRef.current = restored;
                             editor?.commands.setContent(restored.currentBody);
                             setTitle(restored.title);
                         }}
