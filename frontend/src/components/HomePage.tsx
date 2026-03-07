@@ -49,32 +49,49 @@ const features = [
 
 export const HomePage: React.FC<HomePageProps> = ({onGetStarted}) => {
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen flex flex-col" style={{background: 'var(--color-bg-base)'}}>
 
             {/* Nav */}
-            <nav className="border-b border-gray-200 bg-white sticky top-0 z-10">
+            <nav
+                className="sticky top-0 z-10"
+                style={{
+                    background: 'var(--color-bg-surface)',
+                    borderBottom: '1px solid var(--color-border)',
+                }}
+            >
                 <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
-                            <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                        <div
+                            className="w-8 h-8 rounded-md flex items-center justify-center"
+                            style={{background: 'var(--color-accent)'}}
+                        >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" style={{color: '#0f1117'}}>
                                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                                 <path fillRule="evenodd"
                                       d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 000-2h-3z"
                                       clipRule="evenodd"/>
                             </svg>
                         </div>
-                        <span className="font-semibold text-gray-900 text-lg">Prompt Vault</span>
+                        <span className="font-semibold text-lg" style={{color: 'var(--color-accent)'}}>
+                            Prompt Vault
+                        </span>
                     </div>
                     <div className="flex items-center gap-4">
                         <button
                             onClick={onGetStarted}
-                            className="text-sm text-gray-600 hover:text-gray-900 font-medium px-0 py-0 bg-transparent border-none cursor-pointer"
+                            className="text-sm font-medium px-0 py-0 bg-transparent border-none cursor-pointer transition-colors"
+                            style={{color: 'var(--color-text-secondary)'}}
+                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
                         >
                             Sign in
                         </button>
                         <button
                             onClick={onGetStarted}
-                            className="text-sm bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors font-medium border-none cursor-pointer"
+                            className="text-sm px-4 py-2 rounded-md font-medium border-none cursor-pointer transition-colors"
+                            style={{background: 'var(--color-accent)', color: '#0f1117'}}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-accent)')}
                         >
                             Get started
                         </button>
@@ -83,28 +100,43 @@ export const HomePage: React.FC<HomePageProps> = ({onGetStarted}) => {
             </nav>
 
             {/* Hero */}
-            <section className="bg-gray-50 border-b border-gray-200">
+            <section style={{background: 'var(--color-bg-surface)', borderBottom: '1px solid var(--color-border)'}}>
                 <div className="max-w-6xl mx-auto px-6 py-24 text-center">
                     <span
-                        className="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide mb-6">
+                        className="inline-block text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide mb-6"
+                        style={{
+                            background: 'var(--color-accent-dim)',
+                            color: 'var(--color-accent)',
+                        }}
+                    >
                         Enterprise-grade prompt management
                     </span>
-                    <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6 max-w-3xl mx-auto">
+                    <h1
+                        className="text-5xl font-bold leading-tight mb-6 max-w-3xl mx-auto"
+                        style={{color: 'var(--color-text-primary)'}}
+                    >
                         Store, version, and search your AI prompts
                     </h1>
-                    <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
+                       style={{color: 'var(--color-text-secondary)'}}>
                         Prompt Vault gives teams a single source of truth for every AI prompt — with version control,
                         full-text search, and secure sharing built in.
                     </p>
                     <div className="flex items-center justify-center gap-4">
                         <button
                             onClick={onGetStarted}
-                            className="bg-gray-900 text-white px-8 py-3 rounded-md text-base font-medium hover:bg-gray-700 transition-colors border-none cursor-pointer"
+                            className="px-8 py-3 rounded-md text-base font-medium border-none cursor-pointer transition-colors"
+                            style={{background: 'var(--color-accent)', color: '#0f1117'}}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-accent)')}
                         >
                             Open Vault
                         </button>
-                        <a href="#features"
-                           className="text-gray-600 font-medium text-base hover:text-gray-900 transition-colors">
+                        <a
+                            href="#features"
+                            className="font-medium text-base transition-colors no-underline"
+                            style={{color: 'var(--color-text-secondary)'}}
+                        >
                             See features →
                         </a>
                     </div>
@@ -114,27 +146,51 @@ export const HomePage: React.FC<HomePageProps> = ({onGetStarted}) => {
             {/* Features */}
             <section id="features" className="max-w-6xl mx-auto px-6 py-20">
                 <div className="text-center mb-14">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Everything your team needs</h2>
-                    <p className="text-gray-500 text-lg">Built for engineers and prompt engineers who take their work
-                        seriously.</p>
+                    <h2 className="text-3xl font-bold mb-3" style={{color: 'var(--color-text-primary)'}}>
+                        Everything your team needs
+                    </h2>
+                    <p className="text-lg" style={{color: 'var(--color-text-secondary)'}}>
+                        Built for engineers and prompt engineers who take their work seriously.
+                    </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {features.map((f) => (
-                        <div key={f.title}
-                             className="p-6 rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow">
+                        <div
+                            key={f.title}
+                            className="p-6 rounded-xl transition-shadow"
+                            style={{
+                                background: 'var(--color-bg-surface)',
+                                border: '1px solid var(--color-border)',
+                            }}
+                            onMouseEnter={e => {
+                                (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-accent)';
+                            }}
+                            onMouseLeave={e => {
+                                (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-border)';
+                            }}
+                        >
                             <div
-                                className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-yellow-400 mb-4">
+                                className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+                                style={{
+                                    background: 'var(--color-accent-dim)',
+                                    color: 'var(--color-accent)',
+                                }}
+                            >
                                 {f.icon}
                             </div>
-                            <h3 className="font-semibold text-gray-900 mb-2">{f.title}</h3>
-                            <p className="text-sm text-gray-500 leading-relaxed">{f.description}</p>
+                            <h3 className="font-semibold mb-2" style={{color: 'var(--color-text-primary)'}}>
+                                {f.title}
+                            </h3>
+                            <p className="text-sm leading-relaxed" style={{color: 'var(--color-text-secondary)'}}>
+                                {f.description}
+                            </p>
                         </div>
                     ))}
                 </div>
             </section>
 
             {/* Stats bar */}
-            <section className="bg-gray-900 py-14">
+            <section className="py-14" style={{background: 'var(--color-bg-surface)'}}>
                 <div className="max-w-6xl mx-auto px-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
                         {[
@@ -143,11 +199,15 @@ export const HomePage: React.FC<HomePageProps> = ({onGetStarted}) => {
                             {value: '100%', unit: '', label: 'Private by default'},
                         ].map((stat) => (
                             <div key={stat.label}>
-                                <div className="text-4xl font-bold text-white mb-1">
+                                <div className="text-4xl font-bold mb-1" style={{color: 'var(--color-text-primary)'}}>
                                     {stat.value}
-                                    {stat.unit && <span className="text-yellow-400 ml-1 text-2xl">{stat.unit}</span>}
+                                    {stat.unit && (
+                                        <span className="ml-1 text-2xl" style={{color: 'var(--color-accent)'}}>
+                                            {stat.unit}
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="text-gray-400 text-sm">{stat.label}</div>
+                                <div className="text-sm" style={{color: 'var(--color-text-muted)'}}>{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -156,19 +216,27 @@ export const HomePage: React.FC<HomePageProps> = ({onGetStarted}) => {
 
             {/* CTA */}
             <section className="max-w-6xl mx-auto px-6 py-20 text-center">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to organise your prompts?</h2>
-                <p className="text-gray-500 text-lg mb-8">Get started in seconds. No setup required.</p>
+                <h2 className="text-3xl font-bold mb-4" style={{color: 'var(--color-text-primary)'}}>
+                    Ready to organise your prompts?
+                </h2>
+                <p className="text-lg mb-8" style={{color: 'var(--color-text-secondary)'}}>
+                    Get started in seconds. No setup required.
+                </p>
                 <button
                     onClick={onGetStarted}
-                    className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-md text-base font-semibold hover:bg-yellow-300 transition-colors border-none cursor-pointer"
+                    className="px-8 py-3 rounded-md text-base font-semibold border-none cursor-pointer transition-colors"
+                    style={{background: 'var(--color-accent)', color: '#0f1117'}}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-accent)')}
                 >
                     Open Prompt Vault
                 </button>
             </section>
 
             {/* Footer */}
-            <footer className="border-t border-gray-200 mt-auto">
-                <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-between text-sm text-gray-400">
+            <footer className="mt-auto" style={{borderTop: '1px solid var(--color-border)'}}>
+                <div className="max-w-6xl mx-auto px-6 py-8 flex items-center justify-between text-sm"
+                     style={{color: 'var(--color-text-muted)'}}>
                     <span>© {new Date().getFullYear()} Prompt Vault</span>
                     <span>Built for teams who build with AI.</span>
                 </div>

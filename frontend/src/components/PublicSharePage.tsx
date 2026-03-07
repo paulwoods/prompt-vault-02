@@ -8,7 +8,6 @@ interface PublicSharePageProps {
     token: string;
 }
 
-// PV-112: distinguish between expired/revoked and truly not found
 type ErrorKind = 'not_found' | 'gone';
 
 export const PublicSharePage: React.FC<PublicSharePageProps> = ({token}) => {
@@ -24,7 +23,6 @@ export const PublicSharePage: React.FC<PublicSharePageProps> = ({token}) => {
         shareLinkApi.getPublic(token)
             .then(setShare)
             .catch(async () => {
-                // Re-fetch to distinguish 404 vs 410
                 try {
                     const res = await fetch(`/promptvault/api/share/${token}`);
                     if (res.status === 410) {
@@ -57,25 +55,25 @@ export const PublicSharePage: React.FC<PublicSharePageProps> = ({token}) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <span className="text-gray-400 text-sm">Loading…</span>
+            <div className="min-h-screen flex items-center justify-center" style={{background: 'var(--color-bg-base)'}}>
+                <span className="text-sm" style={{color: 'var(--color-text-muted)'}}>Loading…</span>
             </div>
         );
     }
 
     if (error || !share) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center" style={{background: 'var(--color-bg-base)'}}>
                 <div className="text-center max-w-sm">
-                    {/* PV-112: different icon/message for expired vs not found */}
                     <div className="text-4xl mb-3">{errorKind === 'gone' ? '⏰' : '🔍'}</div>
-                    <h1 className="text-xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-xl font-bold mb-2" style={{color: 'var(--color-text-primary)'}}>
                         {errorKind === 'gone' ? 'Link Unavailable' : 'Not Found'}
                     </h1>
-                    <p className="text-gray-500 text-sm mb-4">{error}</p>
+                    <p className="text-sm mb-4" style={{color: 'var(--color-text-secondary)'}}>{error}</p>
                     <a
                         href="/"
-                        className="inline-block text-sm bg-gray-900 text-white px-4 py-2 rounded-md font-medium hover:bg-gray-700 transition-colors no-underline"
+                        className="inline-block text-sm px-4 py-2 rounded-md font-medium no-underline transition-colors"
+                        style={{background: 'var(--color-accent)', color: '#0f1117'}}
                     >
                         Go to Prompt Vault
                     </a>
@@ -87,30 +85,43 @@ export const PublicSharePage: React.FC<PublicSharePageProps> = ({token}) => {
     const plainBody = share.body.replace(/<[^>]+>/g, '');
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen" style={{background: 'var(--color-bg-base)'}}>
             {/* Header */}
-            <header className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
-                <a href="/" className="text-yellow-400 font-bold text-lg no-underline">
+            <header
+                className="px-6 py-3 flex items-center justify-between"
+                style={{
+                    background: 'var(--color-bg-surface)',
+                    borderBottom: '1px solid var(--color-border)',
+                }}
+            >
+                <a href="/" className="font-bold text-lg no-underline" style={{color: 'var(--color-accent)'}}>
                     Prompt Vault
                 </a>
                 <div className="flex items-center gap-2">
                     <a
                         href={shareLinkApi.exportUrl(token)}
                         download
-                        className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded-md font-medium hover:bg-gray-800 transition-colors no-underline"
+                        className="text-sm px-3 py-1.5 rounded-md font-medium no-underline transition-colors"
+                        style={{
+                            background: 'var(--color-bg-elevated)',
+                            color: 'var(--color-text-secondary)',
+                            border: '1px solid var(--color-border)',
+                        }}
                     >
                         Export .txt
                     </a>
-                    {/* Fork button — shown when logged in (attempt will redirect if not) */}
                     {forked ? (
-                        <span className="text-sm text-green-400 font-medium">
-                            ✓ Forked — <a href="/" className="underline text-green-300">open in vault</a>
+                        <span className="text-sm font-medium" style={{color: '#4ade80'}}>
+                            ✓ Forked — <a href="/" className="underline" style={{color: '#4ade80'}}>open in vault</a>
                         </span>
                     ) : (
                         <button
                             onClick={handleFork}
                             disabled={forking}
-                            className="text-sm bg-yellow-400 text-gray-900 px-3 py-1.5 rounded-md font-medium hover:bg-yellow-300 transition-colors disabled:opacity-50 border-none cursor-pointer"
+                            className="text-sm px-3 py-1.5 rounded-md font-medium border-none cursor-pointer transition-colors disabled:opacity-50"
+                            style={{background: 'var(--color-accent)', color: '#0f1117'}}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-accent)')}
                         >
                             {forking ? 'Forking…' : 'Fork to my vault'}
                         </button>
@@ -120,20 +131,38 @@ export const PublicSharePage: React.FC<PublicSharePageProps> = ({token}) => {
 
             {forkError && (
                 <div className="max-w-3xl mx-auto px-6 pt-4">
-                    <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-700">
-                        {forkError} — <a href="/auth" className="underline">Sign in</a> to fork prompts.
+                    <div
+                        className="rounded-lg px-4 py-2 text-sm"
+                        style={{
+                            background: 'rgba(224,82,82,0.1)',
+                            border: '1px solid rgba(224,82,82,0.3)',
+                            color: 'var(--color-danger)',
+                        }}
+                    >
+                        {forkError} — <a href="/auth" className="underline" style={{color: 'var(--color-accent)'}}>
+                        Sign in
+                    </a> to fork prompts.
                     </div>
                 </div>
             )}
 
             {/* Content */}
             <main className="max-w-3xl mx-auto px-6 py-10">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">{share.title}</h1>
-                    <p className="text-xs text-gray-400 mb-6">
+                <div
+                    className="rounded-xl p-8 shadow-2xl"
+                    style={{
+                        background: 'var(--color-bg-surface)',
+                        border: '1px solid var(--color-border)',
+                    }}
+                >
+                    <h1 className="text-2xl font-bold mb-1" style={{color: 'var(--color-text-primary)'}}>
+                        {share.title}
+                    </h1>
+                    <p className="text-xs mb-6" style={{color: 'var(--color-text-muted)'}}>
                         Shared {new Date(share.sharedAt).toLocaleString()}
                     </p>
-                    <div className="prose prose-sm max-w-none text-gray-700">
+                    <div className="prose prose-invert prose-sm max-w-none"
+                         style={{color: 'var(--color-text-secondary)'}}>
                         <ReactMarkdown>{plainBody}</ReactMarkdown>
                     </div>
                 </div>

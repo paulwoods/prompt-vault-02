@@ -28,7 +28,6 @@ export const PromptMetaBar: React.FC<PromptMetaBarProps> = ({
         });
     }, []);
 
-    // Close tag dropdown when clicking outside
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target as Node)) {
@@ -50,18 +49,25 @@ export const PromptMetaBar: React.FC<PromptMetaBarProps> = ({
     };
 
     return (
-        <div className="flex items-center gap-4 px-6 py-2 border-b border-gray-100 bg-gray-50 shrink-0">
+        <div
+            className="flex items-center gap-4 px-6 py-2 shrink-0"
+            style={{
+                background: 'var(--color-bg-surface)',
+                borderBottom: '1px solid var(--color-border-subtle)',
+            }}
+        >
             {/* Folder picker */}
             <div className="flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor"
-                     viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     style={{color: 'var(--color-text-muted)'}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
                 </svg>
                 <select
                     value={folderId ?? ''}
                     onChange={e => onFolderChange(e.target.value || undefined)}
-                    className="text-xs text-gray-600 bg-transparent border-none outline-none cursor-pointer pr-4 appearance-none"
+                    className="text-xs bg-transparent border-none outline-none cursor-pointer pr-4 appearance-none"
+                    style={{color: 'var(--color-text-secondary)'}}
                 >
                     <option value="">No folder</option>
                     {folders.map(f => (
@@ -70,45 +76,59 @@ export const PromptMetaBar: React.FC<PromptMetaBarProps> = ({
                 </select>
             </div>
 
-            <span className="text-gray-200 text-xs">|</span>
+            <span className="text-xs" style={{color: 'var(--color-border)'}}>|</span>
 
             {/* Tag picker */}
             <div className="relative flex items-center gap-1.5" ref={tagDropdownRef}>
-                <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor"
-                     viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     style={{color: 'var(--color-text-muted)'}}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                           d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 9V4a1 1 0 011-1h3z"/>
                 </svg>
                 <button
                     onClick={() => setTagDropdownOpen(o => !o)}
-                    className="text-xs text-gray-600 bg-transparent border-none outline-none cursor-pointer hover:text-gray-900 flex items-center gap-1"
+                    className="text-xs bg-transparent border-none outline-none cursor-pointer flex items-center gap-1 transition-colors"
+                    style={{color: 'var(--color-text-secondary)'}}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
                 >
                     {selectedTags.length === 0
                         ? 'Add tags'
                         : selectedTags.map(t => t.name).join(', ')}
-                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         style={{color: 'var(--color-text-muted)'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
 
                 {tagDropdownOpen && (
                     <div
-                        className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[160px] py-1">
+                        className="absolute top-full left-0 mt-1 z-50 rounded-lg shadow-xl min-w-[160px] py-1"
+                        style={{
+                            background: 'var(--color-bg-elevated)',
+                            border: '1px solid var(--color-border)',
+                        }}
+                    >
                         {tags.length === 0 ? (
-                            <p className="text-xs text-gray-400 px-3 py-2">No tags available</p>
+                            <p className="text-xs px-3 py-2" style={{color: 'var(--color-text-muted)'}}>
+                                No tags available
+                            </p>
                         ) : (
                             tags.map(tag => (
                                 <label
                                     key={tag.id}
-                                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
+                                    className="flex items-center gap-2 px-3 py-1.5 cursor-pointer transition-colors"
+                                    style={{color: 'var(--color-text-secondary)'}}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-hover)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                                 >
                                     <input
                                         type="checkbox"
                                         checked={tagIds.includes(tag.id)}
                                         onChange={() => toggleTag(tag.id)}
-                                        className="accent-gray-900"
+                                        style={{accentColor: 'var(--color-accent)'}}
                                     />
-                                    <span className="text-xs text-gray-700">{tag.name}</span>
+                                    <span className="text-xs">{tag.name}</span>
                                 </label>
                             ))
                         )}

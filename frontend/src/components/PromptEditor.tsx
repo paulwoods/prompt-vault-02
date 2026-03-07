@@ -24,7 +24,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
     const [showUnsaved, setShowUnsaved] = useState(false);
     const promptRef = useRef(prompt);
 
-    // Track the "clean" body and title so we can detect changes
     const savedBodyRef = useRef(prompt.currentBody);
     const savedTitleRef = useRef(prompt.title);
     const rowVersionRef = useRef(prompt.rowVersion);
@@ -37,12 +36,11 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
         content: prompt.currentBody,
         editorProps: {
             attributes: {
-                class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4',
+                class: 'prose prose-invert prose-sm max-w-none focus:outline-none min-h-[200px] p-6',
             },
         },
     });
 
-    // Keep promptRef current for the keyboard handler
     useEffect(() => {
         promptRef.current = prompt;
     }, [prompt]);
@@ -79,7 +77,6 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
         }
     }, [editor, title, onSaved]);
 
-    // Save folder/tag changes immediately without touching the body
     const saveMetaOnly = useCallback(async (folderId: string | undefined, tagIds: string[]) => {
         if (!editor) return;
         setSaveError(null);
@@ -130,14 +127,43 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
 
     const currentBody = editor?.getHTML() ?? prompt.currentBody;
 
+    const tabBtn = (m: typeof mode, label: string) => (
+        <button
+            key={m}
+            onClick={() => setMode(m)}
+            className="px-3 py-1 rounded text-sm font-medium transition-colors border-none cursor-pointer"
+            style={{
+                background: mode === m ? 'var(--color-accent)' : 'transparent',
+                color: mode === m ? '#0f1117' : 'var(--color-text-secondary)',
+            }}
+            onMouseEnter={e => {
+                if (mode !== m) e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={e => {
+                if (mode !== m) e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
+        >
+            {label}
+        </button>
+    );
+
     return (
-        <div className="flex flex-col h-full bg-white">
+        <div className="flex flex-col h-full" style={{background: 'var(--color-bg-base)'}}>
 
             {/* Toolbar */}
-            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 shrink-0">
+            <div
+                className="flex items-center justify-between px-4 py-2 shrink-0"
+                style={{
+                    background: 'var(--color-bg-surface)',
+                    borderBottom: '1px solid var(--color-border)',
+                }}
+            >
                 <button
                     onClick={handleClose}
-                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 bg-transparent border-none cursor-pointer px-0"
+                    className="flex items-center gap-1 text-sm bg-transparent border-none cursor-pointer px-0 transition-colors"
+                    style={{color: 'var(--color-text-secondary)'}}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
@@ -146,28 +172,27 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 </button>
 
                 <div className="flex items-center gap-2">
-                    {/* Edit / Preview / History / Share toggle */}
-                    <div className="flex border border-gray-200 rounded-md p-0.5 text-sm">
-                        {(['edit', 'view', 'history', 'share'] as const).map(m => (
-                            <button
-                                key={m}
-                                onClick={() => setMode(m)}
-                                className={`px-3 py-1 rounded text-sm font-medium transition-colors border-none cursor-pointer capitalize
-                                    ${mode === m ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
-                            >
-                                {m === 'view' ? 'Preview' : m === 'history' ? 'History' : m === 'share' ? 'Share' : 'Edit'}
-                            </button>
-                        ))}
+                    <div
+                        className="flex p-0.5 rounded-md"
+                        style={{background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)'}}
+                    >
+                        {tabBtn('edit', 'Edit')}
+                        {tabBtn('view', 'Preview')}
+                        {tabBtn('history', 'History')}
+                        {tabBtn('share', 'Share')}
                     </div>
 
                     {saveError && (
-                        <span className="text-xs text-red-600">{saveError}</span>
+                        <span className="text-xs" style={{color: 'var(--color-danger)'}}>{saveError}</span>
                     )}
 
                     <button
                         onClick={save}
                         disabled={saving}
-                        className="bg-gray-900 text-white text-sm px-4 py-1.5 rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50 border-none cursor-pointer font-medium"
+                        className="text-sm px-4 py-1.5 rounded-md font-medium border-none cursor-pointer transition-colors disabled:opacity-50"
+                        style={{background: 'var(--color-accent)', color: '#0f1117'}}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-accent)')}
                     >
                         {saving ? 'Saving…' : 'Save'}
                     </button>
@@ -176,28 +201,38 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
 
             {/* PV-111: Permanent attribution banner for forked prompts */}
             {prompt.forkedFromPromptId && (
-                <div className="shrink-0 bg-yellow-50 border-b border-yellow-200 px-6 py-2 flex items-center gap-2">
-                    <svg className="w-3.5 h-3.5 text-yellow-600 shrink-0" fill="none" stroke="currentColor"
-                         viewBox="0 0 24 24">
+                <div
+                    className="shrink-0 px-6 py-2 flex items-center gap-2"
+                    style={{
+                        background: 'var(--color-accent-dim)',
+                        borderBottom: '1px solid rgba(245,200,66,0.25)',
+                    }}
+                >
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         style={{color: 'var(--color-accent)'}}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                               d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
-                    <span className="text-xs text-yellow-800">
+                    <span className="text-xs" style={{color: 'var(--color-accent)'}}>
                         Forked from a prompt by <strong>{prompt.forkedFromAuthor}</strong>
                     </span>
                 </div>
             )}
 
-            {/* Title + meta — hidden in history and share modes */}
+            {/* Title + meta */}
             {mode !== 'history' && mode !== 'share' && (
                 <>
-                    <div className="px-6 pt-5 pb-2 shrink-0 border-b border-gray-100">
+                    <div
+                        className="px-6 pt-5 pb-2 shrink-0"
+                        style={{borderBottom: '1px solid var(--color-border-subtle)'}}
+                    >
                         <input
                             type="text"
                             value={title}
                             onChange={e => setTitle(e.target.value)}
                             placeholder="Untitled prompt"
-                            className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder-gray-300"
+                            className="w-full text-2xl font-bold bg-transparent border-none outline-none"
+                            style={{color: 'var(--color-text-primary)'}}
                         />
                     </div>
                     <PromptMetaBar
@@ -212,12 +247,15 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
             {/* Body */}
             <div className="flex-1 overflow-hidden">
                 {mode === 'edit' && (
-                    <div className="h-full overflow-y-auto">
+                    <div className="h-full overflow-y-auto" style={{color: 'var(--color-text-primary)'}}>
                         <EditorContent editor={editor} className="h-full"/>
                     </div>
                 )}
                 {mode === 'view' && (
-                    <div className="h-full overflow-y-auto px-6 py-4 prose prose-sm max-w-none">
+                    <div
+                        className="h-full overflow-y-auto px-6 py-4 prose prose-invert prose-sm max-w-none"
+                        style={{color: 'var(--color-text-primary)'}}
+                    >
                         <ReactMarkdown>{currentBody.replace(/<[^>]+>/g, '')}</ReactMarkdown>
                     </div>
                 )}
@@ -241,13 +279,19 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({prompt, onSaved, onCl
                 )}
             </div>
 
-            {/* Status bar — only in edit/view modes */}
+            {/* Status bar */}
             {mode !== 'history' && mode !== 'share' && (
-                <div className="shrink-0 px-6 py-1.5 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-xs text-gray-400">
+                <div
+                    className="shrink-0 px-6 py-1.5 flex items-center justify-between"
+                    style={{
+                        background: 'var(--color-bg-surface)',
+                        borderTop: '1px solid var(--color-border-subtle)',
+                    }}
+                >
+                    <span className="text-xs" style={{color: 'var(--color-text-muted)'}}>
                         {isDirty() ? '● Unsaved changes' : 'All changes saved'}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs" style={{color: 'var(--color-text-muted)'}}>
                         {navigator.platform.includes('Mac') ? '⌘S' : 'Ctrl+S'} to save
                     </span>
                 </div>

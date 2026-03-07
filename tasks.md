@@ -150,9 +150,9 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## UX Enhancements
 
-- [ ] PV-130: Collapsible sidebar (persist state)
-- [ ] PV-131: Keyboard shortcuts (Cmd+K, Cmd+S, etc.)
-- [ ] PV-132: Enterprise dark theme + yellow accents
+- [x] PV-130: Collapsible sidebar (persist state)
+- [x] PV-131: Keyboard shortcuts (Cmd+K, Cmd+S, etc.)
+- [x] PV-132: Enterprise dark theme + yellow accents
 
 ---
 

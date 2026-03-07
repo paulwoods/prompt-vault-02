@@ -7,26 +7,53 @@ interface UnsavedChangesModalProps {
 }
 
 export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({onSave, onDiscard, onCancel}) => (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-lg p-6 w-full max-w-sm">
-            <h3 className="text-base font-semibold text-gray-900 mb-1">Unsaved changes</h3>
-            <p className="text-sm text-gray-500 mb-6">You have unsaved changes. What would you like to do?</p>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div
+            className="rounded-xl p-6 w-full max-w-sm shadow-2xl"
+            style={{
+                background: 'var(--color-bg-surface)',
+                border: '1px solid var(--color-border)',
+            }}
+        >
+            <h3 className="text-base font-semibold mb-1" style={{color: 'var(--color-text-primary)'}}>
+                Unsaved changes
+            </h3>
+            <p className="text-sm mb-6" style={{color: 'var(--color-text-secondary)'}}>
+                You have unsaved changes. What would you like to do?
+            </p>
             <div className="flex flex-col gap-2">
                 <button
                     onClick={onSave}
-                    className="w-full bg-gray-900 text-white py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors border-none cursor-pointer"
+                    className="w-full py-2 rounded-md text-sm font-medium border-none cursor-pointer transition-colors"
+                    style={{background: 'var(--color-accent)', color: '#0f1117'}}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-accent)')}
                 >
                     Save changes
                 </button>
                 <button
                     onClick={onDiscard}
-                    className="w-full bg-transparent text-red-600 py-2 rounded-md text-sm font-medium hover:bg-red-50 transition-colors border border-red-200 cursor-pointer"
+                    className="w-full py-2 rounded-md text-sm font-medium cursor-pointer transition-colors"
+                    style={{
+                        background: 'transparent',
+                        color: 'var(--color-danger)',
+                        border: '1px solid var(--color-danger)',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(224,82,82,0.1)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                     Discard changes
                 </button>
                 <button
                     onClick={onCancel}
-                    className="w-full bg-transparent text-gray-500 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors border border-gray-200 cursor-pointer"
+                    className="w-full py-2 rounded-md text-sm font-medium cursor-pointer transition-colors"
+                    style={{
+                        background: 'transparent',
+                        color: 'var(--color-text-secondary)',
+                        border: '1px solid var(--color-border)',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                     Keep editing
                 </button>

@@ -7,7 +7,6 @@ interface VersionHistoryProps {
     onRestored: (updated: Prompt) => void;
 }
 
-// Simple line-level diff: returns tokens tagged as added, removed, or unchanged
 function computeDiff(oldText: string, newText: string): { text: string; type: 'added' | 'removed' | 'unchanged' }[] {
     const oldLines = oldText.split('\n');
     const newLines = newText.split('\n');
@@ -45,7 +44,6 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({prompt, onRestore
     useEffect(() => {
         promptApi.getVersions(prompt.id)
             .then(v => {
-                // Show newest first
                 setVersions([...v].reverse());
                 setLoading(false);
             })
@@ -72,73 +70,132 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({prompt, onRestore
     const diffLines = selectedText !== null ? computeDiff(currentText, selectedText) : null;
 
     return (
-        <div className="flex h-full">
+        <div className="flex h-full" style={{background: 'var(--color-bg-base)'}}>
             {/* Version list */}
-            <div className="w-56 shrink-0 border-r border-gray-200 overflow-y-auto">
-                <div className="px-3 py-2 border-b border-gray-200">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Versions</span>
+            <div
+                className="w-56 shrink-0 overflow-y-auto"
+                style={{borderRight: '1px solid var(--color-border)'}}
+            >
+                <div
+                    className="px-3 py-2"
+                    style={{borderBottom: '1px solid var(--color-border)'}}
+                >
+                    <span
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{color: 'var(--color-text-muted)'}}
+                    >
+                        Versions
+                    </span>
                 </div>
-                {loading && <p className="text-xs text-gray-400 p-3">Loading…</p>}
-                {error && <p className="text-xs text-red-500 p-3">{error}</p>}
+                {loading && (
+                    <p className="text-xs p-3" style={{color: 'var(--color-text-muted)'}}>Loading…</p>
+                )}
+                {error && (
+                    <p className="text-xs p-3" style={{color: 'var(--color-danger)'}}>{error}</p>
+                )}
                 <ul>
-                    {versions.map((v, idx) => (
-                        <li key={v.id}>
-                            <button
-                                onClick={() => setSelectedVersion(selectedVersion?.id === v.id ? null : v)}
-                                className={`w-full text-left px-3 py-2.5 border-b border-gray-100 transition-colors border-none cursor-pointer
-                                    ${selectedVersion?.id === v.id ? 'bg-gray-900 text-white' : 'bg-transparent hover:bg-gray-50 text-gray-700'}`}
-                            >
-                                <div className="text-sm font-medium">
-                                    {idx === 0 ? 'Latest' : `Version ${v.versionNumber}`}
-                                </div>
-                                <div
-                                    className={`text-xs mt-0.5 ${selectedVersion?.id === v.id ? 'text-gray-300' : 'text-gray-400'}`}>
-                                    {new Date(v.createdAt).toLocaleString(undefined, {
-                                        month: 'short', day: 'numeric',
-                                        hour: '2-digit', minute: '2-digit',
-                                    })}
-                                </div>
-                            </button>
-                        </li>
-                    ))}
+                    {versions.map((v, idx) => {
+                        const isSelected = selectedVersion?.id === v.id;
+                        return (
+                            <li key={v.id}>
+                                <button
+                                    onClick={() => setSelectedVersion(isSelected ? null : v)}
+                                    className="w-full text-left px-3 py-2.5 border-none cursor-pointer transition-colors"
+                                    style={{
+                                        background: isSelected ? 'var(--color-accent-dim)' : 'transparent',
+                                        borderBottom: '1px solid var(--color-border-subtle)',
+                                    }}
+                                    onMouseEnter={e => {
+                                        if (!isSelected)
+                                            e.currentTarget.style.background = 'var(--color-bg-hover)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        if (!isSelected)
+                                            e.currentTarget.style.background = 'transparent';
+                                    }}
+                                >
+                                    <div
+                                        className="text-sm font-medium"
+                                        style={{color: isSelected ? 'var(--color-accent)' : 'var(--color-text-primary)'}}
+                                    >
+                                        {idx === 0 ? 'Latest' : `Version ${v.versionNumber}`}
+                                    </div>
+                                    <div
+                                        className="text-xs mt-0.5"
+                                        style={{color: 'var(--color-text-muted)'}}
+                                    >
+                                        {new Date(v.createdAt).toLocaleString(undefined, {
+                                            month: 'short', day: 'numeric',
+                                            hour: '2-digit', minute: '2-digit',
+                                        })}
+                                    </div>
+                                </button>
+                            </li>
+                        );
+                    })}
                 </ul>
             </div>
 
             {/* Diff / preview pane */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {!selectedVersion ? (
-                    <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+                    <div
+                        className="flex-1 flex items-center justify-center text-sm"
+                        style={{color: 'var(--color-text-muted)'}}
+                    >
                         Select a version to compare
                     </div>
                 ) : (
                     <>
                         {/* Pane header */}
-                        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 shrink-0">
+                        <div
+                            className="flex items-center justify-between px-4 py-2 shrink-0"
+                            style={{
+                                borderBottom: '1px solid var(--color-border)',
+                                background: 'var(--color-bg-surface)',
+                            }}
+                        >
                             <div>
-                                <span className="text-sm font-medium text-gray-900">
+                                <span
+                                    className="text-sm font-medium"
+                                    style={{color: 'var(--color-text-primary)'}}
+                                >
                                     Version {selectedVersion.versionNumber}
                                 </span>
-                                <span className="text-xs text-gray-400 ml-2">
+                                <span className="text-xs ml-2" style={{color: 'var(--color-text-muted)'}}>
                                     {new Date(selectedVersion.createdAt).toLocaleString()}
                                 </span>
                             </div>
                             <button
                                 onClick={() => handleRestore(selectedVersion)}
                                 disabled={restoring}
-                                className="text-sm bg-yellow-400 text-gray-900 px-3 py-1.5 rounded-md font-medium hover:bg-yellow-300 transition-colors disabled:opacity-50 border-none cursor-pointer"
+                                className="text-sm px-3 py-1.5 rounded-md font-medium border-none cursor-pointer transition-colors disabled:opacity-50"
+                                style={{background: 'var(--color-accent)', color: '#0f1117'}}
+                                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-accent-hover)')}
+                                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-accent)')}
                             >
                                 {restoring ? 'Restoring…' : 'Restore this version'}
                             </button>
                         </div>
 
                         {/* Diff legend */}
-                        <div className="flex gap-4 px-4 py-1.5 bg-gray-50 border-b border-gray-200 shrink-0">
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="inline-block w-3 h-3 rounded-sm bg-red-200"/>
+                        <div
+                            className="flex gap-4 px-4 py-1.5 shrink-0"
+                            style={{
+                                background: 'var(--color-bg-surface)',
+                                borderBottom: '1px solid var(--color-border-subtle)',
+                            }}
+                        >
+                            <span className="text-xs flex items-center gap-1"
+                                  style={{color: 'var(--color-text-muted)'}}>
+                                <span className="inline-block w-3 h-3 rounded-sm"
+                                      style={{background: 'rgba(224,82,82,0.3)'}}/>
                                 Current (removed in this version)
                             </span>
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="inline-block w-3 h-3 rounded-sm bg-yellow-200"/>
+                            <span className="text-xs flex items-center gap-1"
+                                  style={{color: 'var(--color-text-muted)'}}>
+                                <span className="inline-block w-3 h-3 rounded-sm"
+                                      style={{background: 'var(--color-accent-dim)'}}/>
                                 This version (added vs current)
                             </span>
                         </div>
@@ -148,18 +205,35 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({prompt, onRestore
                             {diffLines?.map((line, i) => (
                                 <div
                                     key={i}
-                                    className={`px-4 py-0.5 whitespace-pre-wrap leading-relaxed
-                                        ${line.type === 'added' ? 'bg-yellow-50 text-yellow-900' : ''}
-                                        ${line.type === 'removed' ? 'bg-red-50 text-red-900 line-through opacity-60' : ''}
-                                        ${line.type === 'unchanged' ? 'text-gray-700' : ''}`}
+                                    className="px-4 py-0.5 whitespace-pre-wrap leading-relaxed"
+                                    style={{
+                                        background: line.type === 'added'
+                                            ? 'var(--color-accent-dim)'
+                                            : line.type === 'removed'
+                                                ? 'rgba(224,82,82,0.12)'
+                                                : 'transparent',
+                                        color: line.type === 'added'
+                                            ? 'var(--color-accent)'
+                                            : line.type === 'removed'
+                                                ? 'var(--color-danger)'
+                                                : 'var(--color-text-secondary)',
+                                        textDecoration: line.type === 'removed' ? 'line-through' : 'none',
+                                        opacity: line.type === 'removed' ? 0.7 : 1,
+                                    }}
                                 >
-                                    <span className={`mr-3 select-none text-xs
-                                        ${line.type === 'added' ? 'text-yellow-500' : ''}
-                                        ${line.type === 'removed' ? 'text-red-400' : ''}
-                                        ${line.type === 'unchanged' ? 'text-gray-300' : ''}`}>
+                                    <span
+                                        className="mr-3 select-none text-xs"
+                                        style={{
+                                            color: line.type === 'added'
+                                                ? 'var(--color-accent)'
+                                                : line.type === 'removed'
+                                                    ? 'var(--color-danger)'
+                                                    : 'var(--color-text-muted)',
+                                        }}
+                                    >
                                         {line.type === 'added' ? '+' : line.type === 'removed' ? '−' : ' '}
                                     </span>
-                                    {line.text || <span className="opacity-30">&#8203;</span>}
+                                    {line.text || <span style={{opacity: 0.3}}>&#8203;</span>}
                                 </div>
                             ))}
                         </div>
