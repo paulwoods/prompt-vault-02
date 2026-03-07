@@ -50,4 +50,25 @@ export const authApi = {
         if (!response.ok) return null;
         return response.json();
     },
+
+    async requestPasswordReset(email: string): Promise<void> {
+        const response = await apiFetch(`${API_BASE}/auth/password-reset/request`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email}),
+        });
+        if (!response.ok) throw new Error('Failed to send password reset email');
+    },
+
+    async confirmPasswordReset(token: string, newPassword: string): Promise<void> {
+        const response = await apiFetch(`${API_BASE}/auth/password-reset/confirm`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({token, newPassword}),
+        });
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({}));
+            throw new Error((body as { message?: string }).message ?? 'Invalid or expired reset token');
+        }
+    },
 };

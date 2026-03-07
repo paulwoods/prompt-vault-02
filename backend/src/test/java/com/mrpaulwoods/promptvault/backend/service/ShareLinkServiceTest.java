@@ -1,5 +1,6 @@
 package com.mrpaulwoods.promptvault.backend.service;
 
+import com.mrpaulwoods.promptvault.backend.config.MailProperties;
 import com.mrpaulwoods.promptvault.backend.dto.PublicShareResponse;
 import com.mrpaulwoods.promptvault.backend.dto.ShareLinkRequest;
 import com.mrpaulwoods.promptvault.backend.dto.ShareLinkResponse;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
@@ -35,6 +37,12 @@ class ShareLinkServiceTest {
 
     @Mock
     private PromptRepository promptRepository;
+
+    @Mock
+    private JavaMailSender mailSender;
+
+    @Mock
+    private MailProperties mailProperties;
 
     @InjectMocks
     private ShareLinkService shareLinkService;
@@ -265,5 +273,39 @@ class ShareLinkServiceTest {
         assertThatThrownBy(() -> shareLinkService.getPublicShare("notfound"))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Share link not found");
+    }
+
+    @Test
+    void emailShareLink_ShouldCreateShareLinkAndSendEmail() {
+        com.mrpaulwoods.promptvault.backend.dto.EmailShareRequest request = new com.mrpaulwoods.promptvault.backend.dto.EmailShareRequest();
+        request.setRecipientEmail("recipient@example.com");
+
+        when(promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)).thenReturn(Optional.of(prompt));
+        ShareLink savedLink = ShareLink.builder()
+                .id(UUID.randomUUID())
+                .promptId(promptId)
+                .token("abc123token")
+                .createdAt(Instant.now())
+                .build();
+        when(shareLinkRepository.save(any())).thenReturn(savedLink);
+        when(mailProperties.getFrom()).thenReturn("noreply@example.com");
+        when(mailProperties.getBaseUrl()).thenReturn("http://localhost:5173");
+
+        shareLinkService.emailShareLink(promptId, userId, request);
+
+        verify(shareLinkRepository).save(any());
+        verify(mailSender).send(any(org.springframework.mail.SimpleMailMessage.class));
+    }
+
+    @Test
+    void emailShareLink_WhenPromptNotFound_ShouldThrow404() {
+        com.mrpaulwoods.promptvault.backend.dto.EmailShareRequest request = new com.mrpaulwoods.promptvault.backend.dto.EmailShareRequest();
+        request.setRecipientEmail("recipient@example.com");
+
+        when(promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> shareLinkService.emailShareLink(promptId, userId, request))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Prompt not found");
     }
 }

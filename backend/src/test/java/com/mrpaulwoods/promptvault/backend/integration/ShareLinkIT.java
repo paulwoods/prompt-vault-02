@@ -153,4 +153,30 @@ class ShareLinkIT extends IntegrationTestBase {
                         .content("{}"))
                 .andExpect(status().is4xxClientError());
     }
+
+    @Test
+    void emailShareLink_ShouldReturn200() throws Exception {
+        mockMvc.perform(post("/api/prompts/{promptId}/share-links/email", promptId)
+                        .cookie(jwtCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"recipientEmail\":\"recipient@example.com\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void emailShareLink_WithInvalidEmail_ShouldReturn400() throws Exception {
+        mockMvc.perform(post("/api/prompts/{promptId}/share-links/email", promptId)
+                        .cookie(jwtCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"recipientEmail\":\"not-valid-email\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void emailShareLink_WithoutAuth_ShouldReturn401Or403() throws Exception {
+        mockMvc.perform(post("/api/prompts/{promptId}/share-links/email", promptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"recipientEmail\":\"recipient@example.com\"}"))
+                .andExpect(status().is4xxClientError());
+    }
 }

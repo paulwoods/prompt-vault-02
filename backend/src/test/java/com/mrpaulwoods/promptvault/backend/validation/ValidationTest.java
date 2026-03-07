@@ -42,7 +42,7 @@ class ValidationTest {
 
     @BeforeEach
     void setUp() {
-        authMockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService))
+        authMockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService, null))
                 .build();
         promptMockMvc = MockMvcBuilders.standaloneSetup(new PromptController(promptService))
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())

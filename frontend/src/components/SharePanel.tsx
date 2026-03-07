@@ -12,6 +12,10 @@ export const SharePanel: React.FC<SharePanelProps> = ({promptId}) => {
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [emailInput, setEmailInput] = useState('');
+    const [sendingEmail, setSendingEmail] = useState(false);
+    const [emailSuccess, setEmailSuccess] = useState(false);
+    const [emailError, setEmailError] = useState<string | null>(null);
 
     useEffect(() => {
         shareLinkApi.list(promptId)
@@ -49,6 +53,22 @@ export const SharePanel: React.FC<SharePanelProps> = ({promptId}) => {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
+    const handleEmailShare = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setEmailError(null);
+        setEmailSuccess(false);
+        setSendingEmail(true);
+        try {
+            await shareLinkApi.emailShare(promptId, emailInput);
+            setEmailSuccess(true);
+            setEmailInput('');
+        } catch {
+            setEmailError('Failed to send email. Please try again.');
+        } finally {
+            setSendingEmail(false);
+        }
+    };
+
     const shareUrl = (token: string) => `${window.location.origin}/share/${token}`;
 
     return (
@@ -65,6 +85,34 @@ export const SharePanel: React.FC<SharePanelProps> = ({promptId}) => {
                 >
                     {creating ? 'Creating…' : '+ New link'}
                 </button>
+            </div>
+
+            {/* Email share */}
+            <div className="mb-5 border border-gray-200 rounded-lg p-3">
+                <p className="text-xs font-medium text-gray-700 mb-2">Share via email</p>
+                <form onSubmit={handleEmailShare} className="flex gap-2">
+                    <input
+                        type="email"
+                        required
+                        value={emailInput}
+                        onChange={e => setEmailInput(e.target.value)}
+                        placeholder="recipient@example.com"
+                        className="flex-1 min-w-0 px-2.5 py-1.5 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    />
+                    <button
+                        type="submit"
+                        disabled={sendingEmail}
+                        className="text-xs bg-gray-900 text-white px-3 py-1.5 rounded-md font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 border-none cursor-pointer shrink-0"
+                    >
+                        {sendingEmail ? 'Sending…' : 'Send'}
+                    </button>
+                </form>
+                {emailSuccess && (
+                    <p className="text-xs text-green-600 mt-1.5">Email sent successfully!</p>
+                )}
+                {emailError && (
+                    <p className="text-xs text-red-500 mt-1.5">{emailError}</p>
+                )}
             </div>
 
             {error && (

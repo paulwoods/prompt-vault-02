@@ -1,4 +1,8 @@
 DELETE
+FROM password_reset_token;
+DELETE
+FROM share_link;
+DELETE
 FROM prompt_tag;
 DELETE
 FROM prompt_version;

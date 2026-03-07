@@ -4,21 +4,35 @@ import {PromptList} from './components/PromptList';
 import {HomePage} from './components/HomePage';
 import {AuthPage} from './components/AuthPage';
 import {PublicSharePage} from './components/PublicSharePage';
+import {ForgotPasswordPage} from './components/ForgotPasswordPage';
+import {ResetPasswordPage} from './components/ResetPasswordPage';
 import {useAuth} from './hooks/useAuth';
 
-type View = 'home' | 'auth' | 'app';
+type View = 'home' | 'auth' | 'forgot-password' | 'app';
 
 function App() {
     const {user, loading, login, register, logout} = useAuth();
     const [view, setView] = useState<View>('home');
+    const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+    const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
 
     // Check if this is a public share URL: /share/:token
     const shareMatch = window.location.pathname.match(/^\/share\/([^/]+)$/);
     if (shareMatch) {
         return <PublicSharePage token={shareMatch[1]}/>;
     }
-    const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-    const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+
+    // Check if this is a password reset URL: /reset-password?token=...
+    if (window.location.pathname === '/reset-password') {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        if (token) {
+            return <ResetPasswordPage token={token} onSuccess={() => {
+                window.history.replaceState(null, '', '/');
+                setView('auth');
+            }}/>;
+        }
+    }
 
     // Once we know the user is already logged in, go straight to app
     if (!loading && user && view !== 'app') {
@@ -37,6 +51,10 @@ function App() {
         return <HomePage onGetStarted={() => setView('auth')}/>;
     }
 
+    if (view === 'forgot-password') {
+        return <ForgotPasswordPage onBack={() => setView('auth')}/>;
+    }
+
     if (view === 'auth') {
         return (
             <AuthPage
@@ -49,6 +67,7 @@ function App() {
                     setView('app');
                 }}
                 onBack={() => setView('home')}
+                onForgotPassword={() => setView('forgot-password')}
             />
         );
     }

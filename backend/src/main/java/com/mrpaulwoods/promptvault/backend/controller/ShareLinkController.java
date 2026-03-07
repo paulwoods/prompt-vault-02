@@ -1,10 +1,12 @@
 package com.mrpaulwoods.promptvault.backend.controller;
 
+import com.mrpaulwoods.promptvault.backend.dto.EmailShareRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PublicShareResponse;
 import com.mrpaulwoods.promptvault.backend.dto.ShareLinkRequest;
 import com.mrpaulwoods.promptvault.backend.dto.ShareLinkResponse;
 import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.service.ShareLinkService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -54,6 +56,16 @@ public class ShareLinkController {
             @PathVariable UUID id) {
         shareLinkService.revokeShareLink(id, user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    // PV-120: Email a share link
+    @PostMapping("/api/prompts/{promptId}/share-links/email")
+    public ResponseEntity<Void> emailShareLink(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID promptId,
+            @Valid @RequestBody EmailShareRequest request) {
+        shareLinkService.emailShareLink(promptId, user.getId(), request);
+        return ResponseEntity.ok().build();
     }
 
     // PV-104: Public share endpoint (no auth required)

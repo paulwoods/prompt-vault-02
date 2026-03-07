@@ -4,9 +4,10 @@ interface AuthPageProps {
     onLogin: (email: string, password: string) => Promise<void>;
     onRegister: (email: string, password: string) => Promise<void>;
     onBack: () => void;
+    onForgotPassword?: () => void;
 }
 
-export const AuthPage: React.FC<AuthPageProps> = ({onLogin, onRegister, onBack}) => {
+export const AuthPage: React.FC<AuthPageProps> = ({onLogin, onRegister, onBack, onForgotPassword}) => {
     const [mode, setMode] = useState<'login' | 'register'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -128,9 +129,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({onLogin, onRegister, onBack})
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Password
-                                </label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Password
+                                    </label>
+                                    {mode === 'login' && onForgotPassword && (
+                                        <button
+                                            type="button"
+                                            onClick={onForgotPassword}
+                                            className="text-xs text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer p-0"
+                                        >
+                                            Forgot password?
+                                        </button>
+                                    )}
+                                </div>
                                 <input
                                     type="password"
                                     required

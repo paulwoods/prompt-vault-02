@@ -175,4 +175,31 @@ class ShareLinkControllerTest {
         mockMvc.perform(get("/api/share/{token}", "badtoken"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void emailShareLink_ShouldReturn200() throws Exception {
+        mockMvc.perform(post("/api/prompts/{promptId}/share-links/email", promptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"recipientEmail\":\"recipient@example.com\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void emailShareLink_WithInvalidEmail_ShouldReturn400() throws Exception {
+        mockMvc.perform(post("/api/prompts/{promptId}/share-links/email", promptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"recipientEmail\":\"not-an-email\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void emailShareLink_WhenPromptNotFound_ShouldReturn404() throws Exception {
+        doThrow(new ResponseStatusException(NOT_FOUND, "Prompt not found"))
+                .when(shareLinkService).emailShareLink(eq(promptId), eq(userId), any());
+
+        mockMvc.perform(post("/api/prompts/{promptId}/share-links/email", promptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"recipientEmail\":\"recipient@example.com\"}"))
+                .andExpect(status().isNotFound());
+    }
 }

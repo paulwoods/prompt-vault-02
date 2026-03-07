@@ -42,4 +42,13 @@ export const shareLinkApi = {
     exportUrl(token: string): string {
         return `${API_BASE}/share/${token}/export`;
     },
+
+    async emailShare(promptId: string, recipientEmail: string): Promise<void> {
+        const response = await apiFetch(`${API_BASE}/prompts/${promptId}/share-links/email`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({recipientEmail}),
+        });
+        if (!response.ok) throw new Error('Failed to send share email');
+    },
 };

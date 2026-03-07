@@ -1,5 +1,7 @@
 package com.mrpaulwoods.promptvault.backend.service;
 
+import com.mrpaulwoods.promptvault.backend.config.MailProperties;
+import com.mrpaulwoods.promptvault.backend.dto.EmailShareRequest;
 import com.mrpaulwoods.promptvault.backend.dto.PublicShareResponse;
 import com.mrpaulwoods.promptvault.backend.dto.ShareLinkRequest;
 import com.mrpaulwoods.promptvault.backend.dto.ShareLinkResponse;
@@ -9,6 +11,8 @@ import com.mrpaulwoods.promptvault.backend.repository.PromptRepository;
 import com.mrpaulwoods.promptvault.backend.repository.ShareLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,6 +28,8 @@ public class ShareLinkService {
 
     private final ShareLinkRepository shareLinkRepository;
     private final PromptRepository promptRepository;
+    private final JavaMailSender mailSender;
+    private final MailProperties mailProperties;
 
     @Transactional
     public ShareLinkResponse createShareLink(UUID promptId, UUID userId, ShareLinkRequest request) {
@@ -100,6 +106,29 @@ public class ShareLinkService {
                 .body(prompt.getCurrentBody())
                 .sharedAt(shareLink.getCreatedAt())
                 .build();
+    }
+
+    @Transactional
+    public void emailShareLink(UUID promptId, UUID userId, EmailShareRequest request) {
+        Prompt prompt = promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
+
+        ShareLink shareLink = ShareLink.builder()
+                .promptId(promptId)
+                .token(UUID.randomUUID().toString().replace("-", ""))
+                .build();
+        ShareLink saved = shareLinkRepository.save(shareLink);
+
+        String shareUrl = mailProperties.getBaseUrl() + "/share/" + saved.getToken();
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailProperties.getFrom());
+        message.setTo(request.getRecipientEmail());
+        message.setSubject("Someone shared a prompt with you on Prompt Vault");
+        message.setText("You've been invited to view a prompt titled \"" + prompt.getTitle() + "\".\n\n"
+                        + "Click here to view it:\n" + shareUrl
+                        + "\n\nThis link will allow you to read and fork the prompt into your own vault.");
+        mailSender.send(message);
     }
 
     private ShareLinkResponse mapToResponse(ShareLink shareLink) {

@@ -134,15 +134,15 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Password Reset
 
-- [ ] PV-30: Configure SMTP
-- [ ] PV-31: Password reset request endpoint
-- [ ] PV-32: Password reset confirm endpoint
-- [ ] PV-33: Frontend reset pages
+- [x] PV-30: Configure SMTP
+- [x] PV-31: Password reset request endpoint
+- [x] PV-32: Password reset confirm endpoint
+- [x] PV-33: Frontend reset pages
 
 ## Email Share
 
-- [ ] PV-120: Email share link endpoint
-- [ ] PV-121: Sharing tab email UI
+- [x] PV-120: Email share link endpoint
+- [x] PV-121: Sharing tab email UI
 
 ---
 
