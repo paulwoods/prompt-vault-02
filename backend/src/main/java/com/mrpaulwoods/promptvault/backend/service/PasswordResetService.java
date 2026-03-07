@@ -6,6 +6,7 @@ import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.repository.PasswordResetTokenRepository;
 import com.mrpaulwoods.promptvault.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PasswordResetService {
@@ -30,6 +32,7 @@ public class PasswordResetService {
 
     @Transactional
     public void requestReset(String email) {
+        log.info("Password reset requested email={}", email);
         userRepository.findByEmail(email).ifPresent(user -> {
             String token = UUID.randomUUID().toString();
             PasswordResetToken resetToken = PasswordResetToken.builder()
@@ -45,6 +48,7 @@ public class PasswordResetService {
 
     @Transactional
     public void confirmReset(String token, String newPassword) {
+        log.info("Password reset confirm attempt");
         PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenAndDeletedAtIsNull(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired reset token"));
 
@@ -64,6 +68,7 @@ public class PasswordResetService {
 
         resetToken.setUsedAt(Instant.now());
         passwordResetTokenRepository.save(resetToken);
+        log.info("Password reset completed userId={}", user.getId());
     }
 
     private void sendResetEmail(User user, String token) {

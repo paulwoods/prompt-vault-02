@@ -10,6 +10,7 @@ import com.mrpaulwoods.promptvault.backend.repository.PromptRepository;
 import com.mrpaulwoods.promptvault.backend.repository.PromptVersionRepository;
 import com.mrpaulwoods.promptvault.backend.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PromptService {
@@ -31,6 +33,7 @@ public class PromptService {
 
     @Transactional
     public PromptResponse createPrompt(UUID userId, PromptRequest request) {
+        log.info("Creating prompt userId={} title={}", userId, request.getTitle());
         Prompt prompt = Prompt.builder()
                 .userId(userId)
                 .folderId(request.getFolderId())
@@ -49,6 +52,7 @@ public class PromptService {
         }
 
         createVersion(savedPrompt.getId(), savedPrompt.getCurrentBody(), 1);
+        log.info("Prompt created promptId={} userId={}", savedPrompt.getId(), userId);
 
         return mapToResponse(savedPrompt);
     }
@@ -86,6 +90,7 @@ public class PromptService {
 
     @Transactional
     public PromptResponse updatePrompt(UUID id, UUID userId, PromptRequest request, Integer rowVersion) {
+        log.info("Updating prompt promptId={} userId={}", id, userId);
         Prompt prompt = promptRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
 
@@ -118,6 +123,7 @@ public class PromptService {
             enforceVersionCap(id);
         }
 
+        log.info("Prompt updated promptId={} userId={} bodyChanged={}", id, userId, bodyChanged);
         return mapToResponse(updatedPrompt);
     }
 
@@ -137,6 +143,7 @@ public class PromptService {
 
     @Transactional
     public PromptResponse restoreVersion(UUID promptId, UUID versionId, UUID userId) {
+        log.info("Restoring version promptId={} versionId={} userId={}", promptId, versionId, userId);
         Prompt prompt = promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
 
@@ -160,6 +167,7 @@ public class PromptService {
 
     @Transactional
     public void deletePrompt(UUID id, UUID userId) {
+        log.info("Deleting prompt promptId={} userId={}", id, userId);
         Prompt prompt = promptRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
         prompt.setDeletedAt(Instant.now());

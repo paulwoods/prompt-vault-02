@@ -7,6 +7,7 @@ import com.mrpaulwoods.promptvault.backend.entity.Prompt;
 import com.mrpaulwoods.promptvault.backend.repository.FolderRepository;
 import com.mrpaulwoods.promptvault.backend.repository.PromptRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FolderService {
@@ -32,6 +34,7 @@ public class FolderService {
 
     @Transactional
     public FolderResponse createFolder(UUID userId, FolderRequest request) {
+        log.info("Creating folder userId={} name={}", userId, request.getName());
         folderRepository.findActiveByUserIdAndName(userId, request.getName())
                 .ifPresent(f -> {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Folder with this name already exists");
@@ -43,6 +46,7 @@ public class FolderService {
                 .build();
 
         Folder savedFolder = folderRepository.save(folder);
+        log.info("Folder created folderId={} userId={}", savedFolder.getId(), userId);
         return mapToResponse(savedFolder);
     }
 
@@ -65,6 +69,7 @@ public class FolderService {
 
     @Transactional
     public void deleteFolder(UUID id, UUID userId, String mode, UUID targetFolderId) {
+        log.info("Deleting folder folderId={} userId={} mode={}", id, userId, mode);
         Folder folder = folderRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 

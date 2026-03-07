@@ -10,6 +10,7 @@ import com.mrpaulwoods.promptvault.backend.entity.ShareLink;
 import com.mrpaulwoods.promptvault.backend.repository.PromptRepository;
 import com.mrpaulwoods.promptvault.backend.repository.ShareLinkRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShareLinkService {
@@ -33,6 +35,7 @@ public class ShareLinkService {
 
     @Transactional
     public ShareLinkResponse createShareLink(UUID promptId, UUID userId, ShareLinkRequest request) {
+        log.info("Creating share link promptId={} userId={}", promptId, userId);
         promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
 
@@ -43,6 +46,7 @@ public class ShareLinkService {
                 .build();
 
         ShareLink saved = shareLinkRepository.save(shareLink);
+        log.info("Share link created shareLinkId={} promptId={}", saved.getId(), promptId);
         return mapToResponse(saved);
     }
 
@@ -70,6 +74,7 @@ public class ShareLinkService {
 
     @Transactional
     public void revokeShareLink(UUID shareLinkId, UUID userId) {
+        log.info("Revoking share link shareLinkId={} userId={}", shareLinkId, userId);
         ShareLink shareLink = shareLinkRepository.findByIdAndDeletedAtIsNull(shareLinkId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Share link not found"));
 
@@ -110,6 +115,7 @@ public class ShareLinkService {
 
     @Transactional
     public void emailShareLink(UUID promptId, UUID userId, EmailShareRequest request) {
+        log.info("Email share requested promptId={} userId={}", promptId, userId);
         Prompt prompt = promptRepository.findByIdAndUserIdAndDeletedAtIsNull(promptId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prompt not found"));
 

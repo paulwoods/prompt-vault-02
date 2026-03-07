@@ -160,9 +160,9 @@ After each task is done, update the task status to "done" and stop for a manual 
 
 ## Hardening
 
-- [ ] PV-140: Structured logging (no prompt content)
-- [ ] PV-141: Global exception handler
-- [ ] PV-142: Input validation + size limits
+- [x] PV-140: Structured logging (no prompt content)
+- [x] PV-141: Global exception handler
+- [x] PV-142: Input validation + size limits
 
 ---
 

@@ -8,6 +8,7 @@ import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -27,7 +29,9 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
+        log.info("Registering new user email={}", request.getEmail());
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Registration failed: email already exists email={}", request.getEmail());
             throw new RuntimeException("Email already exists");
         }
 
@@ -37,6 +41,7 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+        log.info("User registered userId={}", savedUser.getId());
 
         return UserResponse.builder()
                 .id(savedUser.getId())
@@ -46,6 +51,7 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request, HttpServletResponse response) {
+        log.info("Login attempt email={}", request.getEmail());
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
@@ -69,6 +75,7 @@ public class AuthService {
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        log.info("Login successful userId={}", user.getId());
 
         return AuthResponse.builder()
                 .email(user.getEmail())

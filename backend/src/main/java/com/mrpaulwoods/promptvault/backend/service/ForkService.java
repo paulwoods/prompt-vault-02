@@ -6,6 +6,7 @@ import com.mrpaulwoods.promptvault.backend.entity.ShareLink;
 import com.mrpaulwoods.promptvault.backend.entity.User;
 import com.mrpaulwoods.promptvault.backend.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ForkService {
@@ -28,6 +30,7 @@ public class ForkService {
 
     @Transactional
     public PromptResponse forkFromShareToken(String token, UUID forkingUserId) {
+        log.info("Fork requested forkingUserId={}", forkingUserId);
         // PV-112: validate share link
         ShareLink shareLink = shareLinkRepository.findByTokenAndDeletedAtIsNull(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Share link not found or has been revoked"));
@@ -64,6 +67,7 @@ public class ForkService {
                 .build();
 
         Prompt saved = promptRepository.save(forked);
+        log.info("Prompt forked forkedPromptId={} originalPromptId={} forkingUserId={}", saved.getId(), original.getId(), forkingUserId);
 
         // Create initial version for the fork
         var version = com.mrpaulwoods.promptvault.backend.entity.PromptVersion.builder()
