@@ -15,7 +15,5 @@ public interface ShareLinkRepository extends ListCrudRepository<ShareLink, UUID>
 
     Optional<ShareLink> findByTokenAndDeletedAtIsNull(String token);
 
-    Optional<ShareLink> findByToken(String token);
-
     Optional<ShareLink> findByIdAndDeletedAtIsNull(UUID id);
 }

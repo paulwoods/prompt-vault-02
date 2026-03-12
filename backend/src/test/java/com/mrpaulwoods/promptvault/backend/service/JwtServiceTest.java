@@ -1,13 +1,14 @@
 package com.mrpaulwoods.promptvault.backend.service;
 
+import com.mrpaulwoods.promptvault.backend.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,10 +30,19 @@ class JwtServiceTest {
     }
 
     private UserDetails buildUserDetails(String email) {
-        return User.builder()
+        return org.springframework.security.core.userdetails.User.builder()
                 .username(email)
                 .password("password")
                 .authorities(List.of())
+                .build();
+    }
+
+    private User buildUser(String email, Instant passwordChangedAt) {
+        return User.builder()
+                .id(java.util.UUID.randomUUID())
+                .email(email)
+                .passwordHash("hash")
+                .passwordChangedAt(passwordChangedAt)
                 .build();
     }
 
@@ -87,6 +97,39 @@ class JwtServiceTest {
 
         assertThatThrownBy(() -> jwtService.isTokenValid(token, userDetails))
                 .isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void isTokenValid_WhenIssuedBeforePasswordChange_ShouldReturnFalse() {
+        User user = buildUser("test@example.com", null);
+        String token = jwtService.generateToken(user);
+
+        // Simulate password change after token was issued
+        user.setPasswordChangedAt(Instant.now().plusSeconds(1));
+
+        boolean valid = jwtService.isTokenValid(token, user);
+
+        assertThat(valid).isFalse();
+    }
+
+    @Test
+    void isTokenValid_WhenIssuedAfterPasswordChange_ShouldReturnTrue() {
+        User user = buildUser("test@example.com", Instant.now().minusSeconds(60));
+        String token = jwtService.generateToken(user);
+
+        boolean valid = jwtService.isTokenValid(token, user);
+
+        assertThat(valid).isTrue();
+    }
+
+    @Test
+    void isTokenValid_WhenPasswordChangedAtIsNull_ShouldReturnTrue() {
+        User user = buildUser("test@example.com", null);
+        String token = jwtService.generateToken(user);
+
+        boolean valid = jwtService.isTokenValid(token, user);
+
+        assertThat(valid).isTrue();
     }
 
     @Test

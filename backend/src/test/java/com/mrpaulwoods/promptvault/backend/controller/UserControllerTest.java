@@ -1,24 +1,22 @@
 package com.mrpaulwoods.promptvault.backend.controller;
 
 import com.mrpaulwoods.promptvault.backend.entity.User;
-import com.mrpaulwoods.promptvault.backend.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,37 +26,35 @@ class UserControllerTest {
 
     private MockMvc mockMvc;
 
-    @Mock
-    private UserRepository userRepository;
-
     @InjectMocks
     private UserController userController;
 
+    private User user;
+    private UUID userId;
+
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
-        SecurityContextHolder.clearContext();
-    }
-
-    private void setAuthentication(String email) {
-        UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(email, null, List.of());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-    }
-
-    @Test
-    void getMe_ShouldReturnCurrentUser() throws Exception {
-        UUID userId = UUID.randomUUID();
-        User user = User.builder()
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
+        userId = UUID.randomUUID();
+        user = User.builder()
                 .id(userId)
                 .email("test@example.com")
                 .passwordHash("hash")
                 .createdAt(Instant.now())
                 .build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(user, null, List.of()));
+    }
 
-        setAuthentication("test@example.com");
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
 
+    @Test
+    void getMe_ShouldReturnCurrentUser() throws Exception {
         mockMvc.perform(get("/api/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("test@example.com"))
@@ -66,11 +62,9 @@ class UserControllerTest {
     }
 
     @Test
-    void getMe_WhenUserNotFound_ShouldReturn404() throws Exception {
-        setAuthentication("unknown@example.com");
-        when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
-
+    void getMe_ShouldNotExposeSensitiveFields() throws Exception {
         mockMvc.perform(get("/api/me"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist());
     }
 }

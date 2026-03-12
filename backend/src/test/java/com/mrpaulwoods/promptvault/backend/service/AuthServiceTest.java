@@ -16,15 +16,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -56,6 +57,8 @@ class AuthServiceTest {
         loginRequest = new LoginRequest();
         loginRequest.setEmail("test@example.com");
         loginRequest.setPassword("password123");
+
+        ReflectionTestUtils.setField(authService, "cookieSecure", false);
     }
 
     @Test
@@ -129,5 +132,78 @@ class AuthServiceTest {
         authService.logout(response);
 
         verify(response).addHeader(anyString(), anyString());
+    }
+
+    @Test
+    void login_WhenCookieSecureTrue_ShouldSetSecureFlag() {
+        ReflectionTestUtils.setField(authService, "cookieSecure", true);
+
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .email("test@example.com")
+                .passwordHash("encoded_password")
+                .build();
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(any())).thenReturn("jwt_token");
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        authService.login(loginRequest, response);
+
+        verify(response).addHeader(eq("Set-Cookie"), argThat(header -> header.contains("Secure")));
+    }
+
+    @Test
+    void login_WhenCookieSecureFalse_ShouldNotSetSecureFlag() {
+        ReflectionTestUtils.setField(authService, "cookieSecure", false);
+
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .email("test@example.com")
+                .passwordHash("encoded_password")
+                .build();
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(any())).thenReturn("jwt_token");
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        authService.login(loginRequest, response);
+
+        verify(response).addHeader(eq("Set-Cookie"), argThat(header -> !header.contains("Secure")));
+    }
+
+    @Test
+    void logout_WhenCookieSecureTrue_ShouldSetSecureFlag() {
+        ReflectionTestUtils.setField(authService, "cookieSecure", true);
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        authService.logout(response);
+
+        verify(response).addHeader(eq("Set-Cookie"), argThat(header -> header.contains("Secure")));
+    }
+
+    @Test
+    void login_ShouldSetSameSiteStrict() {
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .email("test@example.com")
+                .passwordHash("encoded_password")
+                .build();
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(any())).thenReturn("jwt_token");
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        authService.login(loginRequest, response);
+
+        verify(response).addHeader(eq("Set-Cookie"), argThat(header -> header.contains("SameSite=Strict")));
+    }
+
+    @Test
+    void logout_ShouldSetSameSiteStrict() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        authService.logout(response);
+
+        verify(response).addHeader(eq("Set-Cookie"), argThat(header -> header.contains("SameSite=Strict")));
     }
 }

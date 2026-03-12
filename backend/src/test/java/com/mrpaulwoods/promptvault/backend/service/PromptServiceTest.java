@@ -281,4 +281,24 @@ class PromptServiceTest {
                 .isExactlyInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("does not belong");
     }
+
+    @Test
+    void createPrompt_ShouldNotExposeUserIdInResponse() {
+        Prompt savedPrompt = Prompt.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .title(request.getTitle())
+                .currentBody(request.getCurrentBody())
+                .build();
+
+        when(promptRepository.save(any(Prompt.class))).thenReturn(savedPrompt);
+        when(tagRepository.findTagsByPromptId(savedPrompt.getId())).thenReturn(List.of());
+
+        PromptResponse response = promptService.createPrompt(userId, request);
+
+        // userId must not be present in the response to prevent internal ID leakage
+        assertThat(PromptResponse.class.getDeclaredFields())
+                .extracting(java.lang.reflect.Field::getName)
+                .doesNotContain("userId");
+    }
 }

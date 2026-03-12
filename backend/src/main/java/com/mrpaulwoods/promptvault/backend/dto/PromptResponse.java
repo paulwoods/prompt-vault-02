@@ -15,7 +15,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PromptResponse {
     private UUID id;
-    private UUID userId;
     private UUID folderId;
     private String title;
     private String currentBody;

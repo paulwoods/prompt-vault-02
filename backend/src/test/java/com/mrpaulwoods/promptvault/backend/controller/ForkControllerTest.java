@@ -68,7 +68,6 @@ class ForkControllerTest {
         UUID originalId = UUID.randomUUID();
         PromptResponse response = PromptResponse.builder()
                 .id(UUID.randomUUID())
-                .userId(userId)
                 .title("Forked Title")
                 .currentBody("<p>body</p>")
                 .isFavorite(false)

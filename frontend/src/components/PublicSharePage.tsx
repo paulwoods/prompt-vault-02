@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import ReactMarkdown from 'react-markdown';
+import DOMPurify from 'dompurify';
 import type {Prompt, PublicShare} from '../types';
 import {shareLinkApi} from '../api/shareLinkApi';
 import {forkApi} from '../api/forkApi';
@@ -82,7 +83,7 @@ export const PublicSharePage: React.FC<PublicSharePageProps> = ({token}) => {
         );
     }
 
-    const plainBody = share.body.replace(/<[^>]+>/g, '');
+    const plainBody = DOMPurify.sanitize(share.body, {ALLOWED_TAGS: [], ALLOWED_ATTR: []});
 
     return (
         <div className="min-h-screen" style={{background: 'var(--color-bg-base)'}}>

@@ -1,5 +1,6 @@
 package com.mrpaulwoods.promptvault.backend.service;
 
+import com.mrpaulwoods.promptvault.backend.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -48,7 +49,14 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String email = extractEmail(token);
-        return (email.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        if (!email.equals(userDetails.getUsername()) || isTokenExpired(token)) {
+            return false;
+        }
+        if (userDetails instanceof User user && user.getPasswordChangedAt() != null) {
+            Date issuedAt = extractClaim(token, Claims::getIssuedAt);
+            return issuedAt == null || !issuedAt.toInstant().isBefore(user.getPasswordChangedAt());
+        }
+        return true;
     }
 
     private boolean isTokenExpired(String token) {

@@ -198,7 +198,6 @@ public class PromptService {
 
         return PromptResponse.builder()
                 .id(prompt.getId())
-                .userId(prompt.getUserId())
                 .folderId(prompt.getFolderId())
                 .title(prompt.getTitle())
                 .currentBody(prompt.getCurrentBody())

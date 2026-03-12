@@ -126,6 +126,32 @@ class PasswordResetServiceTest {
     }
 
     @Test
+    void confirmReset_ShouldSetPasswordChangedAt() {
+        PasswordResetToken token = PasswordResetToken.builder()
+                .id(UUID.randomUUID())
+                .userId(userId)
+                .token("validtoken")
+                .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                .rowVersion(0)
+                .build();
+
+        when(passwordResetTokenRepository.findByTokenAndDeletedAtIsNull("validtoken")).thenReturn(Optional.of(token));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newpassword")).thenReturn("newhash");
+        when(userRepository.save(any())).thenReturn(user);
+        when(passwordResetTokenRepository.save(any())).thenReturn(token);
+
+        Instant before = Instant.now();
+        passwordResetService.confirmReset("validtoken", "newpassword");
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().getPasswordChangedAt())
+                .isNotNull()
+                .isAfterOrEqualTo(before);
+    }
+
+    @Test
     void confirmReset_WithInvalidToken_ShouldThrow400() {
         when(passwordResetTokenRepository.findByTokenAndDeletedAtIsNull("badtoken")).thenReturn(Optional.empty());
 

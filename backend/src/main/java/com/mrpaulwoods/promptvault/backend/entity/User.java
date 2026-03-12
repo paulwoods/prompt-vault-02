@@ -34,6 +34,8 @@ public class User implements UserDetails {
 
     private Instant deletedAt;
 
+    private Instant passwordChangedAt;
+
     @Version
     private Integer rowVersion;
 
