@@ -221,7 +221,7 @@ class ShareLinkServiceTest {
                 .createdAt(Instant.now())
                 .build();
 
-        when(shareLinkRepository.findByTokenAndDeletedAtIsNull(token)).thenReturn(Optional.of(shareLink));
+        when(shareLinkRepository.findByToken(token)).thenReturn(Optional.of(shareLink));
         when(promptRepository.findById(promptId)).thenReturn(Optional.of(prompt));
 
         PublicShareResponse response = shareLinkService.getPublicShare(token);
@@ -241,7 +241,7 @@ class ShareLinkServiceTest {
                 .createdAt(Instant.now().minus(2, ChronoUnit.DAYS))
                 .build();
 
-        when(shareLinkRepository.findByTokenAndDeletedAtIsNull(token)).thenReturn(Optional.of(shareLink));
+        when(shareLinkRepository.findByToken(token)).thenReturn(Optional.of(shareLink));
 
         assertThatThrownBy(() -> shareLinkService.getPublicShare(token))
                 .isInstanceOf(ResponseStatusException.class)
@@ -259,7 +259,7 @@ class ShareLinkServiceTest {
                 .createdAt(Instant.now().minus(2, ChronoUnit.DAYS))
                 .build();
 
-        when(shareLinkRepository.findByTokenAndDeletedAtIsNull(token)).thenReturn(Optional.of(shareLink));
+        when(shareLinkRepository.findByToken(token)).thenReturn(Optional.of(shareLink));
 
         assertThatThrownBy(() -> shareLinkService.getPublicShare(token))
                 .isInstanceOf(ResponseStatusException.class)
@@ -268,7 +268,7 @@ class ShareLinkServiceTest {
 
     @Test
     void getPublicShare_WhenTokenNotFound_ShouldThrow404() {
-        when(shareLinkRepository.findByTokenAndDeletedAtIsNull("notfound")).thenReturn(Optional.empty());
+        when(shareLinkRepository.findByToken("notfound")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> shareLinkService.getPublicShare("notfound"))
                 .isInstanceOf(ResponseStatusException.class)

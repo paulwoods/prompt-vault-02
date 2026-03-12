@@ -110,7 +110,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({onLogin, onRegister, onBack, 
                                     color: mode === 'login' ? '#0f1117' : 'var(--color-text-secondary)',
                                 }}
                             >
-                                Sign in
+                                Sign in now
                             </button>
                             <button
                                 type="button"
@@ -121,7 +121,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({onLogin, onRegister, onBack, 
                                     color: mode === 'register' ? '#0f1117' : 'var(--color-text-secondary)',
                                 }}
                             >
-                                Create account
+                                Create an account
                             </button>
                         </div>
 

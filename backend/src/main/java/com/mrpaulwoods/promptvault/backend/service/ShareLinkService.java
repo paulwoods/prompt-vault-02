@@ -87,7 +87,7 @@ public class ShareLinkService {
     }
 
     public PublicShareResponse getPublicShare(String token) {
-        ShareLink shareLink = shareLinkRepository.findByTokenAndDeletedAtIsNull(token)
+        ShareLink shareLink = shareLinkRepository.findByToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Share link not found"));
 
         if (shareLink.getRevokedAt() != null) {

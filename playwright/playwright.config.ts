@@ -32,6 +32,11 @@ export default defineConfig({
             testDir: './tests/api',
             use: {baseURL: process.env.API_BASE_URL || 'http://localhost:8080'},
         },
+        {
+            name: 'features-tests',
+            testDir: './tests/features',
+            use: {baseURL: process.env.API_BASE_URL || 'http://localhost:8080'},
+        },
     ],
 
     webServer: [
@@ -44,7 +49,7 @@ export default defineConfig({
         },
         {
             command: './mvnw spring-boot:run',
-            url: 'http://localhost:8080/actuator/health',
+            url: 'http://localhost:8080/promptvault/actuator/health',
             cwd: '../backend',
             reuseExistingServer: !process.env.CI,
             timeout: 120_000,
