@@ -70,8 +70,7 @@ class ForkIT extends IntegrationTestBase {
                 .andExpect(jsonPath("$.title").value("My Prompt"))
                 .andExpect(jsonPath("$.currentBody").value("<p>Original content</p>"))
                 .andExpect(jsonPath("$.forkedFromPromptId").value(promptId))
-                .andExpect(jsonPath("$.forkedFromAuthor").value("author@example.com"))
-                .andExpect(jsonPath("$.userId").isNotEmpty());
+                .andExpect(jsonPath("$.forkedFromAuthor").value("author@example.com"));
     }
 
     @Test

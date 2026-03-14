@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JwtServiceTest {
 
     // 64-byte hex string for HS512 key (min 512 bits)
-    private static final String SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    private static final String SECRET = "01hNaE3gtBcYRJp2o7KtWvXVzMCOraKRHQZ5JgXAFQNzjVOOhS87IQedoZgj7RQraOoxDwYQvJYl3e5r6ZGa0Q==";
     private static final long EXPIRATION = 3600000L; // 1 hour
     private JwtService jwtService;
 
