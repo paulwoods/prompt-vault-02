@@ -15,7 +15,7 @@ export default defineConfig({
         : [['html', {open: 'on-failure'}]],
 
     use: {
-        baseURL: process.env.BASE_URL || 'http://localhost:5173',
+        baseURL: process.env.PV_BASE_URL || 'http://localhost:5173',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
@@ -30,12 +30,12 @@ export default defineConfig({
         {
             name: 'api-tests',
             testDir: './tests/api',
-            use: {baseURL: process.env.API_BASE_URL || 'http://localhost:8080'},
+            use: {baseURL: process.env.PV_API_BASE_URL || 'http://localhost:8080'},
         },
         {
             name: 'features-tests',
             testDir: './tests/features',
-            use: {baseURL: process.env.API_BASE_URL || 'http://localhost:8080'},
+            use: {baseURL: process.env.PV_API_BASE_URL || 'http://localhost:8080'},
         },
     ],
 

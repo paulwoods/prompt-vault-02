@@ -18,5 +18,5 @@ export async function logoutViaUI(page: Page): Promise<void> {
     await page.getByRole('button', {name: 'Sign out'}).click();
 }
 
-export const TEST_EMAIL = process.env.TEST_USER_EMAIL || 'e2e-test@example.com';
-export const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || 'Password123!';
+export const TEST_EMAIL = process.env.PV_TEST_USER_EMAIL || 'e2e-test@example.com';
+export const TEST_PASSWORD = process.env.PV_TEST_USER_PASSWORD || 'Password123!';

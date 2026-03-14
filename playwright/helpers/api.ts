@@ -1,6 +1,6 @@
 import {APIRequestContext} from '@playwright/test';
 
-const API_BASE = process.env.API_BASE_URL || 'http://localhost:8080';
+const API_BASE = process.env.PV_API_BASE_URL || 'http://localhost:8080';
 const PROMPT_VAULT_PATH = '/promptvault/api';
 
 export async function apiLogin(
